@@ -1,37 +1,45 @@
 #include <unistd.h>
 
-// Check if character is whitespace
+// Character classification macro
 #define IS_SPACE(c) ((c) == ' ' || (c) == '\t')
+
+// Output macros
+#define WRITE_CHAR(c) do { char _c = (c); write(1, &_c, 1); } while(0)
+#define WRITE_STR(s, len) write(1, s, len)
+#define WRITE_NEWLINE() write(1, "\n", 1)
+#define WRITE_N_SPACES() write(1, "   ", 3)
+
+void expand_str(char *str)
+{
+    int word_printed = 0;
+    while (*str && IS_SPACE(*str))
+        str++;
+    while (*str)
+    {
+        if (IS_SPACE(*str))
+        {
+            while (*str && IS_SPACE(*str))
+                str++;
+            if (*str && word_printed)
+                WRITE_N_SPACES();
+        }
+        else
+        {
+            WRITE_CHAR(*str);
+            word_printed = 1;
+            str++;
+        }
+    }
+}
 
 int main(int argc, char **argv)
 {
     if (argc != 2)
     {
-        write(1, "\n", 1);
+        WRITE_NEWLINE();
         return 0;
     }
-
-    char *start = argv[1];
-    char *end = argv[1];
-    int word_found = 0;
-    while (*start && IS_SPACE(*start))
-        start++;
-    end = start;
-    while (*end)
-    {
-        while (*end && !IS_SPACE(*end))
-            end++;
-        if (end > start)
-        {
-            if (word_found)
-                write(1, "   ", 3);
-            write(1, start, end - start);
-            word_found = 1;
-        }
-        while (*end && IS_SPACE(*end))
-            end++;
-        start = end;
-    }
-    write(1, "\n", 1);
+    expand_str(argv[1]);
+    WRITE_NEWLINE();
     return 0;
 }
