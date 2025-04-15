@@ -7,37 +7,38 @@
 // Case conversion macros
 #define TO_UPPER(c) ((c) & ~32)
 #define TO_LOWER(c) ((c) | 32)
-
-// Output macros
+// Output macro
 #define WRITE_CHAR(c) write(1, &(c), 1)
 #define WRITE_NEWLINE() write(1, "\n", 1)
 
-void rstr_capitalizer(char *str)
+void str_capitalizer(char *str)
 {
+    int capitalize = 1;
+
     while (*str)
     {
         if (IS_LETTER(*str))
         {
-            if (*(str + 1) == '\0' || IS_SPACE(*(str + 1)))
-                *str = TO_UPPER(*str);
-            else
-                *str = TO_LOWER(*str);
+            *str = capitalize ? TO_UPPER(*str) : TO_LOWER(*str);
+            capitalize = 0;
         }
-        WRITE_CHAR(*str++);
+        else if (IS_SPACE(*str))
+            capitalize = 1;
+        WRITE_CHAR(*str);
+        str++;
     }
 }
 
 int main(int argc, char **argv)
 {
+    int i = 1;
     if (argc == 1)
         return(WRITE_NEWLINE(), 0);
-    
-    int i = 1;
     while (i < argc)
     {
-        rstr_capitalizer(argv[i]);
+        str_capitalizer(argv[i]);
         WRITE_NEWLINE();
         i++;
     }
-    return 0;
+    return (0);
 }
