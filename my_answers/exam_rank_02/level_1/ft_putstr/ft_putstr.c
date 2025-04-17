@@ -1,25 +1,17 @@
-#include <stdio.h>
 #include <unistd.h>
-
+#define WRITE_CHAR(c) (write(1,&(c),1))
 
 void ft_putstr(char *str)
 {
-	char *cpy;
-	int count;
-
-	cpy = str;
-	count = 0;
-	while(*str & 0xFF)
-		str++;
-	count = str - cpy;
-	write(1, cpy, count);
-	write(1, "\n", 1);
+	int len = 0;
+	while (str[len++]);
+	write(1, str, len - 1);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
-	(void)argc;
-	ft_putstr(argv[1]);
+	char *str;
+	str = "hello world";
+	ft_putstr(str);
 	return (0);
 }
-
