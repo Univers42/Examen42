@@ -1,28 +1,32 @@
 #include <unistd.h>
-#include <stdio.h>
+# define WRITE_NEW_LINE() (write(1,"\n",1))
+// Only bitwise for case detection, no range checks
+# define ISUPPER(c) (((c) & 0x40) && !((c) & 0x20))
+# define ISLOWER(c) (((c) & 0x40) && ((c) & 0x20))
+# define ROT13(c, base, rot) (((c - base + rot) % 26) + base)
+
+void rot_13(char *str)
+{
+    char ch;
+    while(*str)
+    {
+        ch = *str;
+        if (ISUPPER(*str))
+            ch = ROT13(*str, 'A', 1);
+        else if (ISLOWER(*str))
+            ch = ROT13(*str, 'a', 1);
+        write(1, &ch, 1);
+        str++;
+    }
+    WRITE_NEW_LINE();
+}
 
 int main(int argc, char **argv)
 {
-	char	*str;
-	char	c;
-	
-	if (argc != 2)
-		return (write(1, "\n", 1));
-	str = argv[1];
-	while(*str)
-	{
-		c = *str;
-		// Check if alphabetic (bit 0x40 set as initial filter)
-		if (c & 0x40)
-		{
-			if (c >= 'A' && c <= 'Z')
-				c = 'A' + ((c - 'A' + 1) & 0x1F); // increment with a wrap around from Z to A
-			else if (c >= 'a' && c <= 'z')
-				c = 'a' + ((c - 'a' + 1) & 0x1F); // increment with a wrap around from z to a
-		}
-		write(1, &c, 1);
-		str++;
-	}
-	write(1, "\n", 1);
-	return (0);
+    char *str;
+    if (argc != 2)
+        return (WRITE_NEW_LINE(), 1);
+    str = argv[1];
+    rot_13(str);
+    return (0);
 }
