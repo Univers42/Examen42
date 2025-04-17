@@ -1,53 +1,39 @@
 #include <unistd.h>
+# define WRITE_NEW_LINE(c) (write(1,"\n",1))
+# define WRITE_CHAR(c) (write(1,&(c),1))
+# define IS_UPPER(c) ((c & 0x20) == 0)
+# define IS_LOWER(c) ((c & 0x20) != 0)
+# define DELTA_COUNT(c, base) ((c) - base + 1)
 
-// Initialize the repeat count lookup table using bitwise operations
-void init_repeat_table(unsigned char table[256])
+void repeat_alpha(char *str)
 {
-    for (int c = 0; c < 256; c++)
-    {
-        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-            table[c] = (c | 0x20) & 0x1F; // Bitwise position in alphabet (1-26)
-        else
-            table[c] = 1; // Non-alphabetic chars repeat once
-    }
-}
-
-// Process and print a string using the repeat lookup table
-void repeat_print(char *str, unsigned char table[256])
-{
-    int i = 0;
-    
-    while (str[i])
-    {
-        // Lookup the repeat count for the current character
-        unsigned char count = table[(unsigned char)str[i]];
-        
-        // Print the character 'count' times
-        for (unsigned char j = 0; j < count; j++)
-            write(1, &str[i], 1);
-            
-        i++;
-    }
-    
-    // Print newline at the end
-    write(1, "\n", 1);
+	int count;
+	int i;
+	while(*str)
+	{
+		count = 1;
+		i = 0;
+		if(IS_UPPER(*str))
+			count = DELTA_COUNT(*str, 'A');
+		else if (IS_LOWER(*str))
+			count = DELTA_COUNT(*str, 'a');
+		while(i < count)
+		{
+			WRITE_CHAR(*str);
+			i++;
+		}
+		str++;
+	}
+	WRITE_NEW_LINE();
 }
 
 int main(int argc, char **argv)
 {
-    // Check for correct number of arguments
-    if (argc != 2)
-    {
-        write(1, "\n", 1);
-        return (0);
-    }
-    
-    // Initialize lookup table
-    unsigned char repeat_table[256] = {0};
-    init_repeat_table(repeat_table);
-    
-    // Process and print the input string
-    repeat_print(argv[1], repeat_table);
-    
-    return (0);
+	char *str;
+	if (argc != 2)
+		return (WRITE_NEW_LINE(), 1);
+	str = argv[1];
+	if(!str)
+		return (WRITE_NEW_LINE(), 1);
+	repeat_alpha(str);
 }
