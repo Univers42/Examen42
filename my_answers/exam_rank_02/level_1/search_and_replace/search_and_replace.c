@@ -1,33 +1,29 @@
 #include <unistd.h>
+# define WRITE_NEW_LINE() (write(1,"\n",1))
+# define WRITE_NEW_CHAR(c) (write(1,&(c),1))
+# define SAME_CHAR(c,s) ((c ^ s) == 0)
+void search_and_replace(char *str, char sub, char by)
+{
+	while(*str)
+	{
+		if (SAME_CHAR(*str, sub))
+			WRITE_NEW_CHAR(by);
+		else
+			WRITE_NEW_CHAR(*str);
+		str++;
+	}
+	WRITE_NEW_LINE();
+}
 
 int main(int argc, char **argv)
 {
-    unsigned char find;
-    unsigned char replace;
-    unsigned char lookup[256]; // Fixed: Added array size declaration
-    char *str;
-
-    if (argc != 4 || argv[2][1] != '\0' || argv[3][1] != '\0')
-        return (write(1, "\n", 1), 0);
-    
-    find = argv[2][0];
-    replace = argv[3][0];
-    
-    // Initialize lookup table - each character maps to itself
-    for (int i = 0; i < 256; i++)
-        lookup[i] = i; // Fixed: Don't set every character to replace
-    
-    // Set up the replacement mapping
-    lookup[find] = replace;
-    
-    str = argv[1];
-    while (*str)
-    {
-        unsigned char c = lookup[(unsigned char)*str];
-        write(1, &c, 1);
-        str++; // Fixed: Moved the increment outside the lookup to avoid side effects
-    }
-    
-    write(1, "\n", 1);
-    return (0);
+	char *str;
+	char sub;
+	char by;
+	if (argc != 4)
+		return (WRITE_NEW_LINE(), 1);
+	str = argv[1];
+	sub = (char)argv[2][0];
+	by = (char)argv[3][0];
+	search_and_replace(str, sub, by);
 }
