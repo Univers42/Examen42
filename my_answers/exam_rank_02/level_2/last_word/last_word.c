@@ -1,29 +1,45 @@
 #include <unistd.h>
+#define NEWLINE() (write(1,"\n",1))
+#define ISSPACE(c) (((c) ^ '\t') == 0 || ((c) ^ ' ') == 0)
 
-// Properly formatted macros with parentheses
-#define IS_SPACE(c) ((c) == ' ' || (c) == '\t')
+void ft_putchar_sp(char *str, int len)
+{
+    write(1, str, len);
+}
+
+int ft_strlen(char *str)
+{
+    char *temp;
+    temp = str;
+    while(*str)
+        str++;
+    return(str - temp);
+}
+
+void last_word(char *str)
+{
+    int len = ft_strlen(str);
+    char *end = str + len - 1;
+    char *start;
+
+    while(end >= str && ISSPACE(*end))
+        end--;
+    if (end < str)
+        return;
+    start = end;
+    while(start > str && !ISSPACE(*(start-1)))
+        start--;
+    ft_putchar_sp(start, end - start + 1);
+}
 
 int main(int argc, char **argv)
 {
     char *str;
-    int i, start, end;
-
-    if (argc != 2)
-        return (write(1, "\n", 1), 0);
-    str = argv[1];
-    i = 0;
-    start = -1;
-    end = -1;
-    while (str[i])
+    if(argc == 2)
     {
-        if (!IS_SPACE(str[i]) && (i == 0 || IS_SPACE(str[i - 1])))
-            start = i;
-        if (!IS_SPACE(str[i]) && (str[i + 1] == '\0' || IS_SPACE(str[i + 1])))
-            end = i;    
-        i++;
+        str = argv[1];
+        last_word(str);
     }
-    if (start != -1 && end != -1)
-        write(1, &str[start], end - start + 1);
-    write(1, "\n", 1);
-    return (0);
+    NEWLINE();
+    return(0);
 }
