@@ -35,26 +35,36 @@
                         *                  --------------------------------    
                         *                  00000000 00000000 00000000 00001100 (12)
  */ 
-size_t max(int *tab, size_t len)
-{
-    int max_val;
-    unsigned int mask;
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 
-    if (len == 0 || tab == NULL)
+int max(int *tab, unsigned int len)
+{
+    if (len == 0) 
         return 0;
-    max_val = tab[0];
-    for (size_t i = 1; i < len; i++)
+        
+    int max_val = tab[0];
+    for (unsigned int i = 1; i < len; i++)
     {
-        mask = -(tab[i] > max_val);
+        int mask = -(tab[i] > max_val);
         max_val = (mask & tab[i]) | (~mask & max_val);
     }
-    return (max_val);
+    return max_val;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    int tab[] = {1, 1000, 10, 12, 5};
-    size_t len = sizeof(tab) / sizeof(tab[0]);
-    printf("Max value: %zu\n", max(tab, len));
+    unsigned int len = 100;
+    int *tab = (int *)malloc(sizeof(int) * len);
+    if (!tab)
+        return 1;
+    srand(time(NULL));
+    for (unsigned int i = 0; i < len; i++)
+        tab[i] = rand() % 1000;
+    int result = max(tab, len);    
+    printf("The maximum value is : %d \n", result);
+    free(tab);
     return 0;
 }
