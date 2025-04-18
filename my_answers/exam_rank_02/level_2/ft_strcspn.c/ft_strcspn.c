@@ -93,3 +93,40 @@ int main(void)
     
     return 0;
 }
+
+/*
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
+
+// Macro for setting a bit in the bitmap for a character
+#define BIT_SET(bitmap, c) (bitmap[(unsigned char)(c) / 32] |= 1U << ((unsigned char)(c) % 32))
+// Macro for checking if a bit is set in the bitmap for a character
+#define BIT_CHECK(bitmap, c) (bitmap[(unsigned char)(c) / 32] & (1U << ((unsigned char)(c) % 32)))
+
+int ft_strcspn(const char *str1, const char *str2)
+{
+    int index = 0;
+    uint32_t bitmap[8] = {0};
+    while(*str2)
+    {
+        BIT_SET(bitmap, *str2);
+        str2++;
+    }
+    while(*str1)
+    {
+        if(BIT_CHECK(bitmap, *str1))
+            return index;
+        index++;
+        str1++;
+    }
+    return index;
+}
+
+int main(void)
+{
+    char string[46] = "This is the source string";
+    char *substring = "axlie";
+    printf("%c\n%d\n", string[ft_strcspn(string, substring)], ft_strcspn(string, substring));	
+}
+*/
