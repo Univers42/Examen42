@@ -1,15 +1,31 @@
 #include <stdio.h>
-int is_power_of_2(unsigned int n)
+#include <unistd.h>
+#define ISDIGIT(c) (c >= '0' && c <= '9')
+
+int ft_is_power_of_2(unsigned int n)
 {
-    return ((n == 0)? 0 : (n &( n - 1)) == 0);
+    return((n != 0) && (n & (n - 1)) == 0);
 }
 
-int main()
+int ft_atoi(char *str)
 {
-    unsigned int n = 30;
-    if (is_power_of_2(n))
-        printf("%u is a power of 2\n", n);
+    int res;
+    
+    res = 0;
+    while(ISDIGIT(*str))
+        res = (res << 3) + (res << 1) + (*str++ - '0');
+    return (res);
+}
+
+int main(int argc, char **argv)
+{
+    unsigned int number;
+    if(argc != 2)
+        return (write(1,"\n",1));
+    number = (unsigned int)ft_atoi(argv[1]);
+    if(ft_is_power_of_2(number))
+        printf("the number is a power of 2");
     else
-        printf("%u is not a power of 2\n", n);
-    return 0;
+        printf("The number is not a power of  2");
+    return (0);
 }
