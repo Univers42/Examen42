@@ -25,21 +25,31 @@
  * result = 96 + 24 + 3 = 123
  * 
  */
-int ft_atoi(const char *str)
+#include <unistd.h>
+#include <stdio.h>
+# define IS_SPACE(c) (((c) ^ '\t') == 0 || ((c) ^ ' ') == 0)
+# define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+# define NEWLINE() (write(1,"\n",1))
+
+int ft_atoi(char *number)
 {
     int result = 0;
-    int sign = 1;
+    int is_negative = 0;
+    
+    while(IS_SPACE(*number))
+        number++;
+    if((*number ^ '-') == 0 || (*number ^ '+') == 0)
+        is_negative = (*number++ ^ '-') == 0;
+    while(IS_DIGIT(*number))
+        result = (result << 3) + (result << 1) + (*number++ - '0');
+    return (((~result + 1) & -is_negative) | (result & ~-is_negative));
+}
 
-    while (*str == ' ' || (*str >= 9 && *str <= 13))
-        str++;
-    if (*str == '-' || *str == '+')
-    {
-        sign = (*str == '-') ? -1 : 1;
-        str++;
-    }
-    while (*str >= '0' && *str <= '9')
-    {
-        result = (result << 3) + (result << 1) + (*str - '0');
-        str++;
-    }
-    return (result * sign);
+int main(int argc, char **argv)
+{
+    int number;
+    if(argc != 2)
+        return (NEWLINE(), 1);
+    number = ft_atoi(argv[1]);
+    printf("%d\n", number);
+}
