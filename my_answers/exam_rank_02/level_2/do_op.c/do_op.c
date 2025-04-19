@@ -1,150 +1,273 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-typedef int(*op_func)(int, int);
+#define WRITE_CHAR(c) (write(1,(c),1))
 
 /**
- * Efficient jump table :abort
- * O(1) lookup table for operations
- * - eliminate branching overhead
- * Function to add two integers using bitwise operations
- * This function uses bitwise AND, XOR, and left shift to perform addition
- * without using the + operator.
- * 
- * @param a First integer
- * @param b Second integer
- * @return The sum of a and b
+ * ADDITION FIELD
  */
-
- /**
-  * Function to add two integers using bitwise operations
-  * This function uses bitwise AND, XOR, and left shift to perform addition
-  * without using the + operator.
-  * The function works by breaking addition into two parts: 
-  * Addign bits without carrying using (XOR)
-  * and carrying bits using (AND) and left shifting them.
-  * Examples : 
-  * Initial values: a = 5 (binary : 0101), b = 3 (binary : 0011)
-  * 1. Carry = a & b = 0101 & 0011 = 0001 (carry)
-  * 2. a = a ^ b = 0101 ^ 0011 = 0110 (sum without carry)
-  * 3. b = carry << 1 = 0001 << 1 = 0010 (shift carry left)
-  * Iteration 2 
-  * carry = a &  b = 0110 & 0010 = 0010 (carry)
-  * a = a ^ b = 0110 ^ 0010 = 0100 (sum without carry)
-  * b = carry << 1 = 0100 << 1 = 1000 (shift carry left)
-  * Iteration 3
-  * carr = a & b = 0000 & 1000 = 0000 ( no carries )
-  * a = a ^ b = 0000 ^ 1000 = 1000 (sum without carry)
-  * b = carry << 1 = 0000 << 1 = 0000 (shift carry left)
-  * 
-  * since b is now 0, the loop terminates and a = 8 ( binary : 1000)
-  */
-int add(int a, int b)
+int ft_add(int a, int b)
 {
+    int carry;
     while (b != 0)
     {
-        int carry = a & b;
-        a = a ^ b;
+        carry = a & b;
+        a ^= b;
         b = carry << 1;
     }
-    return a;
+    return (a);
 }
-/**
- * for 9 - 5:
- * 1. convert to : 9 + (-5)
- * 2. find -5 using two's complement: ~5 + 1
- * ~5 = ~(0000 0101) = 1111 1010
- * ~5 + 1 = 11111011 (which is -5 in two's complement)
- * 3. Calculate 9 + (-5) using our add function
- * result : 4
- */
-int substract(int a, int b)
+
+int ft_add_recursive(int a, int b)
 {
-    return add(a, ~b + 1);
+    if(b == 0)
+        return (a);
+    return ft_add_recursive(a ^ b, (a & b) << 1);
 }
+
 /**
- * 7 * 5
- * Inital values : 
- * a = 7 (binary : 0111)
- * b = 5 (binary : 0101)
- * result = 0
- * sign = 1
- * 
- * Iteration 1: 
- * b & 1 = 0101 & 0001 = 0001 (true)
- * result = add(0, 7) = 0111 (result)
- * a = 7 << 1 = 14 (binary : 1110)
- * b = 5 >> 1 = 2 (binary : 0010)
- * 
- * Iteration 2:
- * b & 1 = 0010 & 0001 = 0000 (false)
- * a = 14 << 1 = 28 (binary : 11100)
- * b = 2 >> 1 = 1 (binary : 0001)
- * 
- * Iteration 3:
- * b & 1 = 0001 & 0001 = 0001 (true)
- * result = add(0111, 11100) = 10011 (result)
- * a = 28 << 1 = 56 (binary : 111000)
- * b = 1 >> 1 = 0 (binary : 0000)
- * 
- * b is now 0, so we exit the loop. 
- * sign is 1, so we return result = 35
+ * MULTIPLICATION FIELD
  */
-int multiply(int a, int b)
+int ft_multiply(int a, int b)
 {
     int result = 0;
-    int sign = 1;
-
-    if (a < 0)
-    {
-        a = ~a + 1;
-        sign = -sign;
-    }
-    if (b < 0)
-    {
-        b = ~b + 1;
-        sign = -sign;
-    }
-    while (b != 0)
+    while(b != 0)
     {
         if (b & 1)
-            result = add(result, a);
+            result += a;
         a <<= 1;
         b >>= 1;
     }
-    return sign == 1 ? result : ~result + 1;
+    return (result);
 }
 
-int divide(int a, int b)
+int ft_multiply_recursive(int a, int b)
 {
-    return b != 0 ? a / b : 0;
+    if(b == 0)
+        return 0;
+    if (b & 1)
+        return ft_add(a, ft_multiply_recursive(a << 1, b >> 1));
+    else
+        return ft_multiply_recursive(a << 1, b >> 1);
 }
 
-int modulo (int a, int b)
+/**
+ * SUBSTRACTION FIELD
+ */
+int ft_subtract(int a, int b)
 {
-    return b != 0 ? a % b : 0;
+    return ft_add(a, (~b + 1));
 }
+
+int ft_subtract_verbose(int a, int b)
+{
+    int carry;
+    b = (~b + 1);
+    while(b != 0)
+    {
+        carry = a & b;
+        a ^= b;
+        b = carry << 1;
+    }
+    return (a);
+}
+
+int ft_subtract_recursive(int a, int b)
+{
+    // Only convert b to two's complement at the top level
+    return ft_add_recursive(a, (~b + 1));
+}
+
+/**
+ * METHOD
+ */
+int ft_abs(int a)
+{
+    return (a < 0 ? ~a + 1 : a);
+}
+
+/**
+ * DIVISION FIELD AND METHODS
+ */
+int ft_divide(int a, int b)
+{
+    if (b == 0)
+        return 0;
+    int sign = ((a < 0) ^ (b < 0)) ? -1 : 1;
+    unsigned int ua = ft_abs(a);
+    unsigned int ub = ft_abs(b);
+    unsigned int quotient = 0;
+    for (int i = 31; i >= 0; --i)
+    {
+        if ((ub << i) <= ua && (ub << i) > 0)
+        {
+            ua = ft_subtract(ua, ub << i);
+            quotient |= (1U << i);
+        }
+    }
+    return sign * (int)quotient;
+}
+
+int ft_divide_recursive_positive(unsigned int ua, unsigned int ub, int i)
+{
+    if (i < 0)
+        return 0;
+    if ((ub << i) > ua || (ub << i) == 0)
+        return ft_divide_recursive_positive(ua, ub, i - 1);
+    return (1U << i) | ft_divide_recursive_positive(ua - (ub << i), ub, i - 1);
+}
+
+int ft_divide_recursive(int a, int b)
+{
+    if (b == 0)
+        return 0;
+    int sign = ((a < 0) ^ (b < 0)) ? -1 : 1;
+    unsigned int ua = ft_abs(a);
+    unsigned int ub = ft_abs(b);
+    int quotient = ft_divide_recursive_positive(ua, ub, 31);
+    return sign * quotient;
+}
+
+int ft_divide2(int a, int b)
+{
+    int result = 0;
+    while (a >= b)
+    {
+        int temp = b, multiple = 1;
+        while (a >= (temp << 1))
+        {
+            temp <<= 1;
+            multiple <<= 1;
+        }
+        a = ft_subtract(a, temp);
+        result = ft_add(result, multiple);
+    }
+    return (result);
+}
+
+/**
+ * MODULUS FIELD
+ */
+int ft_modulus_for_power_of2(int a, int b)
+{
+    return a & (b - 1);
+}
+
+int ft_modulus(int a, int b)
+{
+    if (b == 0)
+        return 0;
+    int sign = (a < 0) ? -1 : 1;
+    unsigned int ua = ft_abs(a);
+    unsigned int ub = ft_abs(b);
+    while(ua >= ub)
+        ua = ft_subtract(ua, ub);
+    return sign * ua;
+}
+
+int ft_modulus_2(int a, int b)
+{
+    while(a >= b)
+    {
+        int temp = b;
+        while(a >= (temp << 1))
+            temp <<= 1;
+        a = ft_subtract(a, temp);
+    }
+    return a;
+}
+//OTHER WAY TO DO IT WITHOUT BITWISE OPERATOR
+/*
+long long divide(long long a, long long b) {
+    if(a == 0)
+        return 0;
+  
+    // The sign will be negative only if sign of 
+    // divisor and dividend are different
+    int sign = ((a < 0) ^ (b < 0)) ? -1 : 1;
+  
+    // Convert divisor and dividend to positive numbers
+    a = abs(a);
+    b = abs(b);
+  
+    // Initialize the quotient
+    long long quotient = 0;
+  
+    // Perform repeated subtraction till dividend
+    // is greater than divisor
+    while (a >= b) {
+        a -= b;
+        ++quotient;
+    }
+    return quotient * sign;
+}
+    */
+typedef int (*operator_func)(int, int);
+
+int ft_invalid(int a, int b)
+{
+    (void)a;
+    (void)b;
+    return 0;
+}
+
+int calcul_method(int num1, char op, int num2)
+{
+    static operator_func operators[128] = {NULL};
+    static int initialized = 0;
+
+    if (!initialized)
+    {
+        operators['+'] = ft_add;
+        operators['-'] = ft_subtract;
+        operators['*'] = ft_multiply;
+        operators['/'] = ft_divide;
+        operators['%'] = ft_modulus;
+        initialized = 1;
+    }
+    return operators[(unsigned char)op] ? operators[(unsigned char)op](num1, num2) : ft_invalid(num1, num2);
+}
+
 
 int main(int argc, char **argv)
 {
-    if (argc != 4) 
-        return (write(1, "\n", 1), 0);
-    int num1 = atoi(argv[1]);
-    char op = argv[2][0];
-    int num2 = atoi(argv[3]);
-    int result = 0;
-
-    // jump_table to map oprators to functions
-    op_func operations[128] = {0};
-    operations['+'] = add;
-    operations['-'] = substract;
-    operations['*'] = multiply;
-    operations['/'] = divide;
-    operations['%'] = modulo;
-
-    if (operations[(int)op])
-        result = operations[(int)op](num1, num2);
-    printf("%d\n", result);
-    return (0);
+    int number1;
+    char operation;
+    int number2;
+    if(argc != 4)
+        return (WRITE_CHAR("\n"), 1);
+    number1 = atoi(argv[1]);
+    operation = argv[2][0];
+    number2 = atoi(argv[3]);
+    printf( "add iterative way: %d\n"
+            "add recursive way: %d\n"
+            "multiply iterative way: %d\n"
+            "multiply recursive way: %d\n"
+            "substract_verbose iterative way: %d\n"
+            "callback substract iterative way: %d\n"
+            "substract recursive way: %d\n"
+            "divide iterative way: %d\n"
+            "divide recursive way: %d\n"
+            "divide iterative way other version: %d\n"
+            "modulus iterative way: %d\n"
+            "modulus other iterative way: %d\n",
+            //"iterative way: %d\n",
+            //"recursive way: %d\n", 
+            ft_add(number1, number2),
+            ft_add_recursive(number1, number2),
+            ft_multiply(number1, number2),
+            ft_multiply_recursive(number1, number2),
+            ft_subtract_verbose(number1, number2),
+            ft_subtract(number1, number2),
+            ft_subtract_recursive(number1, number2),
+            ft_divide(number1, number2),
+            ft_divide_recursive(number1, number2),
+            ft_divide2(number1, number2),
+            ft_modulus(number1, number2),
+            ft_modulus_2(number1, number2)
+            //ft_modulus_recursive(number1, number2)
+        );
+    printf("==========================\n\n\nMETHOD OF CALCULATION\n\n\n==========================");
+    printf("the calculr %d %c %d == %d\n",number1, operation, number2, calcul_method(number1,operation, number2));
+    return(0);
 }
