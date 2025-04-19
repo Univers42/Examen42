@@ -1,41 +1,30 @@
 #include <unistd.h>
+#define WRITE_CHAR(c) (write(1,&(c),1))
+#define IS_UNDERLINE(c) (((c) ^ '_') == 0)
 
-// Capitalize a lowercase letter using bitwise operations
-// Lowercase to uppercase: Clear the 5th bit (32)
-#define TO_UPPER(c) ((c) & ~(1 << 5))
-
-// Check if a character is lowercase using bitwise operations
-#define IS_LOWER(c) (((c) >= 'a' && (c) <= 'z'))
+void ft_snake_to_camel(char *str)
+{
+    while(*str)
+    {
+        if (IS_UNDERLINE(*str))
+        {
+            str++;
+            *str ^= 0x20;
+            WRITE_CHAR(*str);
+        }
+        else
+            WRITE_CHAR(*str);
+        str++;
+    }
+    WRITE_CHAR("\n");
+}
 
 int main(int argc, char **argv)
 {
     char *str;
-    int i = 0;
-    int capitalize_next = 0;
-
-    if (argc != 2)
-    {
-        write(1, "\n", 1);
-        return 0;
-    }
+    if(argc != 2)
+        return (WRITE_CHAR("\n"), 1);
     str = argv[1];
-    while (str[i])
-    {
-        if (str[i] == '_')
-            capitalize_next = 1;
-        else
-        {
-            if (capitalize_next && IS_LOWER(str[i]))
-            {
-                char upper = TO_UPPER(str[i]);
-                write(1, &upper, 1);
-            }
-            else
-                write(1, &str[i], 1);
-            capitalize_next = 0;
-        }
-        i++;
-    }
-    write(1, "\n", 1);
-    return 0;
+    ft_snake_to_camel(str);
+    return(0);
 }
