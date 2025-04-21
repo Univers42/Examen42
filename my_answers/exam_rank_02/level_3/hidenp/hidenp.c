@@ -1,20 +1,21 @@
-//double pointer technique
 #include <unistd.h>
+#define NEWLINE() (write(1,"\n",1))
 
-void hidenp(char *s1, char *s2)
+void hidenp(char *str, char *set)
 {
-    while (*s2 && *s1)
-        s1 += !(*s1 ^ *s2++);
-
-    write(1, (!*s1 ? "1\n" : "0\n"), 2);
+    while(*str && *set)
+        str+=!(*str ^ *set++);
+    return (write(1,(!*str ? "1\n" : "0\n"),2));
 }
-
 
 int main(int argc, char **argv)
 {
-    if (argc == 3)
-        hidenp(argv[1], argv[2]);
-    else
-        write(1, "\n", 1);
-    return 0;
+    char *str;
+    char *set;
+    if(argc != 3)
+        return (NEWLINE(), 1);
+    str = argv[1];
+    set = argv[2];
+    hidenp(str, set);
+    return (0);
 }
