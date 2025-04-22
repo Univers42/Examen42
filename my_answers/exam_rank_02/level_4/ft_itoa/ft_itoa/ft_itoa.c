@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
+# define CHECK_NEGATIVE_BIT() ((n >> 31) & 1)
+# define ABS_VAL(num, digit) ((num ^ -digit) + digit)
+
 int ft_log10(int n)
 {
     int count = 0;
@@ -25,9 +28,9 @@ char *ft_itoa(int n)
 
     if (!str) return NULL;
     str[len] = '\0';
-    is_negative = (n >> 31) & 1;
+    is_negative = CHECK_NEGATIVE_BIT();
     abs_num = n;
-    abs_num = (abs_num ^ -is_negative) + is_negative;
+    abs_num = ABS_VAL(n, is_negative);
     
     if ((n ^ 0) == 0)
     {
