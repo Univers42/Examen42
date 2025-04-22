@@ -1,51 +1,67 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-static int	get_num_len(int n)
+int ft_log10(int n)
 {
-	int	len;
-
-	len = (n <= 0);  // Start with 1 for negative sign or zero
-	while (n)
-	{
-		n /= 10;
-		len++;
-	}
-	return (len);
+    int count = 0;
+    if (n <= 0)
+        ++count;
+    while(n)
+    {
+        ++count;
+        n /= 10;
+    }
+    return (count);
 }
 
-char	*ft_itoa(int nbr)
+char *ft_itoa(int n)
 {
-	char	*str;
-	int		len;
-	int		sign;
-	unsigned int	n;
+    int len = ft_log10(n);
+    char *str = malloc(len + 1);
+    int is_negative;
+    unsigned int abs_num;
+    int i;
 
-	len = get_num_len(nbr);
-	str = (char *)malloc(sizeof(char) * (len + 1));
-	if (!str)
-		return (NULL);
-	
-	str[len] = '\0';
-	
-	// Handle sign with bitwise operation
-	sign = nbr < 0;
-	// Convert to positive using bitwise operations for absoluting
-	n = sign ? (~nbr + 1) : nbr;
-	
-	// Handle case where nbr is 0
-	if (n == 0)
-		str[0] = '0';
-		
-	// Fill the string from right to left
-	while (n > 0)
-	{
-		str[--len] = (n % 10) + '0';
-		n /= 10;
-	}
-	
-	// Add negative sign if necessary
-	if (sign)
-		str[0] = '-';
-		
-	return (str);
+    if (!str) return NULL;
+    str[len] = '\0';
+    is_negative = (n >> 31) & 1;
+    abs_num = n;
+    abs_num = (abs_num ^ -is_negative) + is_negative;
+    
+    if ((n ^ 0) == 0)
+    {
+        str[0] = '0';
+        return (str);
+    }
+    
+    i = len - 1;
+    while (abs_num)
+    {
+        *(str + i--) = (abs_num % 10) + '0';
+        abs_num /= 10;
+    }
+    if (is_negative)
+        str[0] = '-';
+    return (str);
+}
+
+int main(void)
+{
+    int number = -42445;
+    char *str = ft_itoa(number);
+    printf("%s\n", str);
+    free(str);
+    
+    // Test with negative number
+    number = -12345;
+    str = ft_itoa(number);
+    printf("%s\n", str);
+    free(str);
+
+    number = 0;
+    str = ft_itoa(number);
+    printf("%s\n", str);
+    free(str);
+    return 0;
 }
