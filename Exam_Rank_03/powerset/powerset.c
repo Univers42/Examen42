@@ -1,161 +1,107 @@
 #include "powerset.h"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
-void error_exit(void)
+# define RECLVL 0
+# define MAX_CANDIDATE 2
+/**
+ * why use k as the limit ?
+ * at each recursion level, we are building a partial solution of length `k`
+ * The array `a` holds  the current subset ( or choices) up to depth `k`
+ * so when checking if we have a solution, we want ot sum the element that have been decided so far
+ * if we have 5 numbers but are at the recursion depth `k = 3`
+ * only the first 3 choices in `a`are meaningfulñ at this recursion depth
+ */
+bool is_a_solution(int *a, int *arr, int k, int target)
 {
-	exit(1);
+    int sum = 0;
+    for (int i = 0; i < k; i++)
+        if (a[i])
+            sum += arr[i];
+    return (sum == target);
 }
 
-t_subset *create_subset(int *elements, int size)
+
+void print_solution(int *a, int *arr, int k)
 {
-	t_subset *subset = malloc(sizeof(t_subset));
-	if (!subset)
-		error_exit();
-	
-	if (size > 0)
-	{
-		subset->elements = malloc(sizeof(int) * size);
-		if (!subset->elements)
-		{
-			free(subset);
-			error_exit();
-		}
-		
-		int i = 0;
-		while (i < size)
-		{
-			subset->elements[i] = elements[i];
-			i++;
-		}
-	}
-	else
-		subset->elements = NULL;
-	
-	subset->size = size;
-	subset->next = NULL;
-	return subset;
+	int	i;
+
+	i = -1;
+    printf("{ ");
+    while (++i < k)
+        if (a[i])
+            printf("%d ", arr[i]);
+    printf("}\n");
 }
 
-void add_subset(t_subset **head, int *elements, int size)
+
+void build_candidate(int *c, int *nc)
 {
-	t_subset *new_subset = create_subset(elements, size);
-	new_subset->next = *head;
-	*head = new_subset;
+	c[0] = 1; //include
+	c[1] = 0; //exclude
+	*nc = 2;
 }
 
-void print_and_free_subsets(t_subset *head)
+void make_move(int *a, int k, int value)
 {
-	t_subset *current = head;
-	t_subset *temp;
-	
-	while (current)
-	{
-		int i = 0;
-		while (i < current->size)
-		{
-			printf("%d", current->elements[i]);
-			if (i < current->size - 1)
-				printf(" ");
-			i++;
-		}
-		printf("\n");
-		
-		temp = current;
-		current = current->next;
-		if (temp->elements)
-			free(temp->elements);
-		free(temp);
-	}
+	a[k] = value;
 }
 
-void backtrack(int *arr, int n, int target, int index, 
-			int *current, int current_size, t_subset **result)
+void	unmake_move(int *a, int k, int value)
 {
-	// If target sum is achieved, add current subset to result
-	if (target == 0)
-	{
-		add_subset(result, current, current_size);
-		return;
-	}
-	
-	// If we've gone through all elements or target becomes negative
-	if (index >= n)
-		return;
-	
-	// Try including current element (if it doesn't make sum exceed target)
-	if (arr[index] <= target)
-	{
-		current[current_size] = arr[index];
-		backtrack(arr, n, target - arr[index], index + 1, 
-				current, current_size + 1, result);
-	}
-	
-	// Try excluding current element
-	backtrack(arr, n, target, index + 1, current, current_size, result);
+	(void)a,
+	(void)k;
+	(void)value;
 }
 
-void find_subsets(int *arr, int n, int target, t_subset **result)
+void powerset(int *a, int *arr, int k, int n, int target)
 {
-	int *current = malloc(sizeof(int) * n);
-	if (!current)
-		error_exit();
-	
-	backtrack(arr, n, target, 0, current, 0, result);
-	
-	free(current);
-}
+    int candidate[MAX_CANDIDATE];
+    int nc;
+	int	i;
+    int new_k;
 
-int parse_arguments(int argc, char **argv, int **numbers)
-{
-	if (argc < 2)
-		return -1;
-	
-	int target = atoi(argv[1]);
-	int count = argc - 2;
-	
-	if (count == 0)
-	{
-		*numbers = NULL;
-		return target;
-	}
-	
-	*numbers = malloc(sizeof(int) * count);
-	if (!*numbers)
-		error_exit();
-	
-	int i = 0;
-	while (i < count)
-	{
-		(*numbers)[i] = atoi(argv[i + 2]);
-		i++;
-	}
-	
-	return target;
+    if (k == n)
+    {
+        if (is_a_solution(a, arr, k, target))
+            print_solution(a, arr, k);
+    }
+    else
+    {
+        build_candidate(candidate, &nc);
+        new_k = k + 1;
+        i = -1;
+        while (++i < nc)
+        {
+            make_move(a, k, candidate[i]);
+            powerset(a, arr, new_k , n, target);
+            unmake_move(a, k, candidate[i]);
+        }
+    }
 }
 
 int main(int argc, char **argv)
 {
-	int *numbers;
-	int target = parse_arguments(argc, argv, &numbers);
-	int count = argc - 2;
-	
-	if (argc < 2)
-		return 1;
-	
-	// Handle case where target is 0 and no numbers provided
-	if (count == 0)
-	{
-		if (target == 0)
-			printf("\n"); // Empty set sums to 0
-		return 0;
-	}
-	
-	t_subset *result = NULL;
-	find_subsets(numbers, count, target, &result);
-	
-	print_and_free_subsets(result);
-	
-	if (numbers)
-		free(numbers);
-	
-	return 0;
+    int *arr;
+    int *a;
+    int target;
+    int n;
+	int	i;
+
+    if (argc < 3)
+        return (1);
+    target = atoi(argv[1]);
+    n = argc - 2;
+    arr = calloc(n, sizeof(int));
+    a = calloc(n, sizeof(int));
+	i = -1;
+    while (++i < n)
+        arr[i] = atoi(argv[i + 2]);
+    powerset(a, arr, RECLVL, n, target);
+    free(arr);
+    free(a);
+    return (0);
 }
