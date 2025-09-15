@@ -45,3 +45,14 @@ char	*get_next_line(int fd)
 		return (NULL);
 	return (ft_strdup(line));
 }
+
+int main()
+{
+	int fd = open("file.txt", O_RDWR);
+
+	printf("%s", get_next_line(O_RDWR));
+	printf("%s", get_next_line(fd));
+	printf("%s", get_next_line(fd));
+	printf("%s", get_next_line(fd));
+	return (0);
+}
