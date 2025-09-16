@@ -11,6 +11,7 @@
 #endif
 
 # define MAX_LINE    70000
+
 char	*ft_strdup(char *src)
 {
 	char	*dest;
