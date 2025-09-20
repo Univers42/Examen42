@@ -10,15 +10,19 @@ You will print all the solutions (can be more than one).
 The order of the solutions is not important.
 For example this should work:
 (For readability reasons the '_' means space and the spaces are for readability only.)
+
 $> ./rip '( ( )' | cat -e
 _ ( ) $
 ( _ ) $
-$> ./rip 
-( ( ( ) ( ) ( ) '( ( ( ) ( ) ( ) ) ( ) )' | cat -e) ( ) ) $
+
+$> ./rip '( ( ( ) ( ) ( ) ) ( ) )' | cat -e
+( ( ( ) ( ) ( ) ) ( ) ) $
+
 $> ./rip '( ) ( ) ) ( )' | cat -e
 ( ) ( ) _ ( ) $
 ( ) ( _ ) ( ) $
 ( _ ( ) ) ( ) $
+
 $> ./rip '( ( ) ( ( ) (' | cat -e
 ( ( ) _ _ ) _ $
 ( _ ) ( _ ) _ $

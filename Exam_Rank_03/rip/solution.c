@@ -5,153 +5,202 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/13 20:10:19 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/13 20:43:08 by dlesieur         ###   ########.fr       */
+/*   Created: 2025/09/20 15:39:19 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/09/20 21:21:12 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
-#define RECLVL 0
-#define CANDIDATE_MAX 2
+# define  COND_PEER_PARENT(var) ((var) == '(' || (var) == ')')
 
-bool finished = false;
-
-void min_removals(char *seq, int *left, int *right)
+typedef struct s_state
 {
-    *left = 0;
-    *right = 0;
-    for (int i = 0; seq[i]; i++)
-    {
-        if (seq[i] == '(')
-            (*left)++;
-        else if (seq[i] == ')')
-        {
-            if (*left > 0)
-                (*left)--;
-            else
-                (*right)++;
-        }
-    }
+	int		cur_removal;
+	int		cur_balance;
+	int		min_rem;
+	char	*slow_ptr;
+	char	*fast_ptr;
+	char	*seq;
+	int		len;
+}			t_state;
+
+static int	ft_strlen(const char *str)
+{
+	const char	*tmp;
+
+	tmp = str;
+	while (*tmp)
+		tmp++;
+	return ((int)(tmp - str));
 }
 
-bool is_balanced(char *seq, int *a, int n)
+static char	*preprocess_input(const char *input, t_state *st)
 {
-    int bal = 0;
-    for (int i = 0; i < n; i++)
-    {
-        if ((seq[i] == '(' || seq[i] == ')') && a[i] == 0)
-            continue;
-        if (seq[i] == '(')
-            bal++;
-        else if (seq[i] == ')')
-        {
-            bal--;
-            if (bal < 0)
-                return false;
-        }
-    }
-    return (bal == 0);
+	int	alloc_len;
+	char	*buf;
+
+	st->slow_ptr = NULL;
+	st->fast_ptr = (char *)input;
+	alloc_len = ft_strlen(input);
+	buf = (char *)malloc((size_t)alloc_len + 1);
+	if (!buf)
+		return (NULL);
+	st->slow_ptr = buf;
+	while (*st->fast_ptr)
+	{
+		if (COND_PEER_PARENT(*st->fast_ptr))
+		{
+			*st->slow_ptr = *st->fast_ptr;
+			st->slow_ptr++;
+		}
+		st->fast_ptr++;
+	}
+	*st->slow_ptr = '\0';
+	st->seq = buf;
+	st->len = ft_strlen(buf);
+	return (buf);
 }
 
-int count_removals(char *seq, int *a, int n)
+static void	init_state(t_state *st)
 {
-    int rem = 0;
-    for (int i = 0; i < n; i++)
-        if ((seq[i] == '(' || seq[i] == ')') && a[i] == 0)
-            rem++;
-    return rem;
+	st->cur_removal = 0;
+	st->cur_balance = 0;
+	st->min_rem = 0;
+	st->slow_ptr = NULL;
+	st->fast_ptr = NULL;
+	st->seq = NULL;
+	st->len = 0;
 }
 
-bool is_solution(int k, int n)
+static void	compute_min_rem(t_state *st)
 {
-    return (k == n);
+	st->fast_ptr = st->seq;
+	st->cur_balance = 0;
+	st->cur_removal = 0;
+	while (*(st->fast_ptr))
+	{
+		if (*(st->fast_ptr) == '(')
+			st->cur_balance++;
+		else if (*(st->fast_ptr) == ')')
+		{
+			if (st->cur_balance > 0)
+				st->cur_balance--;
+			else
+				st->cur_removal++;
+		}
+		st->fast_ptr++;
+	}
+	st->min_rem = st->cur_removal + st->cur_balance;
+	st->cur_removal = 0;
+	st->cur_balance = 0;
 }
 
-void print_solution(char *seq, int *a, int n)
+static void	build_candidate(char *seq, int k, int *candidate, int *nc)
 {
-    for (int i = 0; i < n; i++)
-    {
-        if ((seq[i] == '(' || seq[i] == ')') && a[i] == 0)
-            write(1, "_", 1);
-        else
-            write(1, &seq[i], 1);
-    }
-    write(1, "\n", 1);
+	if (COND_PEER_PARENT(seq[k]))
+	{
+		candidate[0] = 1;
+		candidate[1] = 0;
+		*nc = 2;
+	}
+	else
+	{
+		candidate[0] = 1;
+		*nc = 1;
+	}
 }
 
-// Template: build_candidate
-void build_candidate(char *seq, int k, int *candidate, int *nc)
+static void	make_move(char *seq, int *a, int k, int value, t_state *st)
 {
-    if (seq[k] == '(' || seq[k] == ')')
-    {
-        candidate[0] = 1; // keep
-        candidate[1] = 0; // remove
-        *nc = 2;
-    }
-    else
-    {
-        candidate[0] = 1;
-        *nc = 1;
-    }
+	if (COND_PEER_PARENT(seq[k]) && value == 0)
+		st->cur_removal++;
+	else if (value == 1)
+	{
+		if (seq[k] == '(')
+			st->cur_balance++;
+		else if (seq[k] == ')')
+			st->cur_balance--;
+	}
+	a[k] = value;
 }
 
-void make_move(int *a, int k, int value)
+static void	unmake_move(char *seq, int *a, int k, int value, t_state *st)
 {
-    a[k] = value;
+	if (COND_PEER_PARENT(seq[k]) && value == 0)
+		st->cur_removal--;
+	else if (value == 1)
+	{
+		if (seq[k] == '(')
+			st->cur_balance--;
+		else if (seq[k] == ')')
+			st->cur_balance++;
+	}
+	a[k] = 0;
 }
 
-void unmake_move(int *a, int k, int value)
+static void	print_solution(char *seq, int *a, int n)
 {
-    (void)a;
-    (void)k;
-    (void)value;
+	int	i;
+
+	i = 0;
+	while (i < n)
+	{
+		if (COND_PEER_PARENT(seq[i]) && a[i] == 0)
+			write(1, "_", 1);
+		else
+			write(1, &seq[i], 1);
+		write(1, " ", 1);
+		i++;
+	}
+	write(1, "\n", 1);
 }
 
-// Backtracking
-void rip(char *seq, int *a, int k, int n, int min_rem)
+static void	rip(char *seq, int *a, int k, t_state *st)
 {
-    int candidate[CANDIDATE_MAX];
-    int nc;
-    int next_k;
-    int i;
+	int	candidate[2];
+	int	nc;
+	int	i;
 
-    if (is_solution(k, n))
-    {
-        if (is_balanced(seq, a, n) && count_removals(seq, a, n) == min_rem)
-            print_solution(seq, a, n);
-        return;
-    }
-    else
-    {
-        next_k = k + 1;
-        build_candidate(seq, k, candidate, &nc);
-        i = -1;
-        while (++i < nc)
-        {
-            make_move(a, k, candidate[i]);
-            rip(seq, a, next_k, n, min_rem);
-            unmake_move(a, k, candidate[i]);
-        }
-        if (finished)
-            return ;
-    }
+	if (st->cur_removal > st->min_rem || st->cur_balance < 0)
+		return ;
+	if (k == st->len)
+	{
+		if (st->cur_removal == st->min_rem && st->cur_balance == 0)
+			print_solution(seq, a, st->len);
+		return ;
+	}
+	build_candidate(seq, k, candidate, &nc);
+	i = 0;
+	while (i < nc)
+	{
+		make_move(seq, a, k, candidate[i], st);
+		rip(seq, a, k + 1, st);
+		unmake_move(seq, a, k, candidate[i], st);
+		i++;
+	}
 }
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
-    if (argc != 2)
-        return 1;
-    char *seq = argv[1];
-    int n = strlen(seq);
-    int left, right;
-    min_removals(seq, &left, &right);
-    int min_rem = left + right;
-    int *a = calloc(n, sizeof(int));
-    rip(seq, a, RECLVL, n, min_rem);
-    free(a);
-    return 0;
+	char		*seq;
+	int			*a;
+	t_state		st;
+
+	if (argc != 2)
+		return (1);
+	init_state(&st);
+	seq = preprocess_input(argv[1], &st);
+	if (!seq)
+		return (1);
+	compute_min_rem(&st);
+	a = (int *)calloc((size_t)st.len, sizeof(int));
+	if (!a)
+		return (free(seq), 1);
+	rip(seq, a, 0, &st);
+	free(a);
+	free(seq);
+	return (0);
 }
