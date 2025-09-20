@@ -14,19 +14,6 @@ void	print_solution(char *pattern)
 	puts(pattern);
 }
 
-void	*ft_memcpy(void *dest, const void *src, size_t n)
-{
-	const unsigned char *s = (const unsigned char*)src;
-	unsigned char *d;
-
-	d = (unsigned char*)dest;
-	if (d == s)
-		return (dest);
-	while (n--)
-		*d++ = *s++;
-	return(dest);
-}
-
 void ft_swap(void *a, void *b, size_t size)
 {
     unsigned char *pa = a;
