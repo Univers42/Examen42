@@ -29,11 +29,14 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 
 void ft_swap(void *a, void *b, size_t size)
 {
-    unsigned char temp[size];
-
-    ft_memcpy(temp, a, size);
-    ft_memcpy(a, b, size);
-    ft_memcpy(b, temp, size);
+    unsigned char *pa = a;
+    unsigned char *pb = b;
+    size_t i = -1;
+	
+	if (a == b)
+		return ;
+    while (++i < size)
+    	(pa[i] ^= pb[i]), (pb[i] ^= pa[i]), (pa[i] ^= pb[i]);
 }
 
 void	make_move(char *a, char *b)
