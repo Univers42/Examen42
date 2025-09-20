@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_scanf.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/20 13:52:37 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/09/20 14:29:53 by dlesieur         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -181,6 +193,18 @@ int ft_scanf(const char *format, ...)
 	return ret;
 }
 
+/**
+The issue is that when you use scanf("%c", &ch) after scanf("%d", &num),
+the previous input leaves a newline ('\n') character in the input buffer.
+scanf("%c") reads this leftover newline, not a new character from the user.
+This is a common behavior with scanf and character input.
+
+How to fix:
+Before reading a character with scanf("%c", &ch), we should consume
+any leftover whitespace (especially '\n') in the input buffer.
+We can do this by adding a space before %c: scanf(" %c", &ch);
+
+*/
 int main(void)
 {
     char str[1024];
@@ -196,7 +220,9 @@ int main(void)
     printf("You wrote: %d\n", num);
 
     printf("write a character: ");
-    scanf("%c", &ch);
+    // The space before %c tells scanf to skip any whitespace (like leftover newlines)
+    // from previous input, so it reads the next non-whitespace character entered by the user.
+    scanf(" %c", &ch);
     printf("You wrote: %c\n", ch);
 
     printf("write a string and an integer: ");
