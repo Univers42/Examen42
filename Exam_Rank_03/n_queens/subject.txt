@@ -37,7 +37,7 @@ The objective is to find all possible configurations (or a single configuration)
 The Constraints:
 Queens attack horizontally, vertically, and diagonally. 
 Therefore, a valid solution requires that no two queens occupy the same row, column, or diagonal. 
-Complexity:
+Complexity:d
 The N-Queens problem is known to be NP-complete for the decision problem (whether a solution exists), and also for the problem of finding a single solution. 
 Common Solutions:
 Backtracking algorithms are frequently used to solve the N-Queens problem efficiently. 
