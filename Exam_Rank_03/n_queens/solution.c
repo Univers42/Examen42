@@ -11,7 +11,11 @@ bool		is_solution(int n, int k)
 
 void print_solution(int *a, int n)
 {
-    for (int i = 0; i < n; i++) {
+    int i;
+
+    i = -1;
+    while (++i < n)
+    {
         fprintf(stdout, "%d", a[i]);
         if (i < n - 1)
             fprintf(stdout, " ");
@@ -35,8 +39,11 @@ bool is_safe(int *a, int k, int candidate)
 //fills candidate[] with valid columns for row k, returns number of candidates in *nc
 void build_candidate(int *a, int k, int n, int *candidate, int *nc)
 {
+    int col;
+
     *nc = 0;
-    for (int col = 0; col < n; col++)
+    col = -1;
+    while (++col < n)
     {
         if (is_safe(a, k, col))
         {
@@ -54,43 +61,33 @@ void	make_move(int *a, int k, int value)
 
 void n_queen(int *a, int k, int n)
 {
-    int	*candidate;
+    int	candidate[n];
     int nc;
     int i;
 
-	candidate = malloc(sizeof(int) * n);
-	if (!candidate)
-		return ;
     if (is_solution(n, k))
         print_solution(a, n);
     else
     {
         build_candidate(a, k, n, candidate, &nc);
-        i = 0;
-        while (i < nc)
+        i = -1;
+        while (++i < nc)
         {
             make_move(a, k, candidate[i]);
             n_queen(a, k + 1, n);
-            i++;
         }
     }
-	free(candidate);
 }
 
 int main(int argc, char **argv)
 {
-    int n;
-    int *a;
+    int n = atoi(argv[1]);
+    int a[n];
 
     if (argc != 2)
         return 1;
-    n = atoi(argv[1]);
     if (n <= 0)
         return 1;
-    a = malloc(sizeof(int) * n);
-    if (!a)
-        return 1;
     n_queen(a, 0, n);
-    free(a);
     return 0;
 }
