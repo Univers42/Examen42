@@ -66,8 +66,6 @@ void	selection_sort(char *pattern, int *candidate, int *nc)
 void build_candidate(char *pattern, int k, int n, int *candidate, int *nc)
 {
 	int	i;
-	int	tmp;
-	int	j;
 
     *nc = 0;
 	i = k;
@@ -109,6 +107,7 @@ void	permutation(char *pattern, int k, int n)
 
 int main(int argc, char **argv)
 {
+	(void)argc;
 	char *pattern = argv[1];
 	int	k = 0;
 	int	n = strlen(pattern);
