@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 18:58:19 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/21 20:04:43 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/09/22 00:27:41 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,5 +40,7 @@ typedef struct s_dynstr
 }t_dynstr;
 
 char    *get_next_line(int fd);
-
+void    *ft_realloc(void *src, size_t old, size_t new);
+void    *ft_memchr(void *src, int c, size_t nbytes);
+void    *ft_memmove(void *dst, const void *src, size_t nbytes);
 #endif
