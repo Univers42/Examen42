@@ -6,7 +6,7 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/21 18:59:42 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/21 19:27:37 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/09/21 20:22:51 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,13 @@ static int	append_from_buffer(t_file *f, t_dynstr *line)
 		chunk = (size_t)(nl - f->cur + 1);
 	else
 		chunk = avail;
-	if (!ensure_cap(line->buf, line->cap, line->cur + 1))
+	if (!ensure_cap(&line->buf, &line->cap, line->size + chunk + 1))
 		return (-1);
-	memmove(*line->buf + line->size, f->cur, chunk);
+	memmove(line->buf + line->size, f->cur, chunk);
 	line->size += chunk;
 	line->buf[line->size] = '\0';
-	reurn (nl != NULL);
+	f->cur += chunk;
+	return (nl != NULL);
 }
 
 static int	gnl_refill(t_file *f, int fd)
@@ -64,12 +65,11 @@ static int	gnl_refill(t_file *f, int fd)
 	return (1);
 }
 
-bool	scan_nl(t_file *gnl, t_dynstr *line, int fd)
+static bool	scan_nl(t_file *gnl, t_dynstr *line, int fd)
 {
-	const bool	scanning = true;
-	int			st;
+	int	st;
 
-	while (scanning)
+	while (1)
 	{
 		if (gnl->cur >= gnl->end)
 		{
@@ -83,6 +83,7 @@ bool	scan_nl(t_file *gnl, t_dynstr *line, int fd)
 		if (st == 1)
 			break ;
 	}
+	return (true);
 }
 
 char    *get_next_line(int fd)
@@ -90,13 +91,16 @@ char    *get_next_line(int fd)
 	static t_file gnl= {{0}, 0, 0};
 	t_dynstr	line = {NULL, 0, 0};
 
-	if (fd == -1)
-		return  (-1);
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	scan_nl(&gnl, &line, fd);
+	if (!scan_nl(&gnl, &line, fd))
+		return (NULL);
 	if (line.size == 0)
 		return (RESET_BUF(line.buf), NULL);
 	return (line.buf);
+}
+
+int main(int argc, char **arg)
+{
 	
 }
