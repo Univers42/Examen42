@@ -18,7 +18,7 @@
 #include <stdbool.h>
 
 # define MAX_CANDIDATES 2
-
+//./usage 12 2 3 4 5 1 0 7
 bool	is_solution(int *a, int *nums, int n, int target)
 {
 	int i;
