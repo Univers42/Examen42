@@ -1,31 +1,36 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
+#include <stdlib.h>
 
-int     ft_strlen(const char *str)
+void	ft_swap(void *a, void *b, size_t size)
 {
-    int i;
+	unsigned char	*pa;
+	unsigned char	*pb;
+	size_t			i;
 
-    i = 0;
-    while (str[i])
-        i++;
-    return (i);
+	if (a == b)
+		return ;
+	pa = (unsigned char *)a;
+	pb = (unsigned char *)b;
+	i = 0;
+	while (i < size)
+	{
+		pa[i] ^= pb[i];
+		pb[i] ^= pa[i];
+		pa[i] ^= pb[i];
+		i++;
+	}
 }
 
-void    ft_swap(void *a, void *b, size_t n)
+int	ft_strlen(const char *str)
 {
-    unsigned char *pa;
-    unsigned char *pb;
+	int	i;
 
-    pa = (unsigned char *)a;
-    pb = (unsigned char *)b;
-
-    if (*pa == *pb)
-        return ;
-    while (n--)
-        (*pa ^= *pb),(*pb ^= *pa),(*pa++ ^= *pb++);
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
 }
 
 void	selection_sort(char *pattern, int *candidate, int *nc)
@@ -43,67 +48,56 @@ void	selection_sort(char *pattern, int *candidate, int *nc)
 	}
 }
 
-void    build_candidate(int *c, int *nc, int n, char *pattern, int k)
+void	build_candidate(char *pattern, int k, int n, int *candidate, int *nc)
 {
-    int i;
+	int	i;
 
-    i = k;
-    *nc = 0;
-    while (i < n)
-    {
-        c[*nc] = i;
-        (*nc)++;
-        i++;
-    }
-    selection_sort(pattern, c, nc);
+	*nc = 0;
+	i = k;
+	while (i < n)
+	{
+		candidate[*nc] = i;
+		(*nc)++;
+		i++;
+	}
+	selection_sort(pattern, candidate, nc);
 }
-
-void    make_move(char *a, char *b)
+void	permutation(char *pattern, int k, int n)
 {
-    ft_swap(a, b, sizeof(char));
-}
+	int	*candidate;
+	int	nc;
+	int	idx;
+	int	i;
 
-void unmake_move(char *a, char *b)
-{
-    ft_swap(a, b, sizeof(char));
-}
-
-void    permutation(char *pattern, int k, int n)
-{
-    int *candidate;
-    int nc;
-    int i;
-    int idx;
-
-    candidate = (int *)calloc(n, sizeof(int));
-    if (n == k)
-        puts(pattern);
-    else
-    {
-        build_candidate(candidate, &nc, n, pattern, k);
-        idx = -1;
-        while (++idx < nc)
-        {
-            i = candidate[idx];
-            make_move(&pattern[i], &pattern[k]);
-            permutation(pattern, k + 1, n);
-            unmake_move(&pattern[i], &pattern[k]);
-        }
-    }
-    free(candidate);
+	candidate = calloc(n, sizeof(n));
+	if (!candidate)
+		return ;
+	if (k == n)
+		puts(pattern);
+	else
+	{
+		build_candidate(pattern, k, n, candidate, &nc);
+		idx = -1;
+		while (++idx < nc)
+		{
+			i = candidate[idx];
+			ft_swap(&pattern[i], &pattern[k], sizeof(char));
+			permutation(pattern, k + 1, n);
+			ft_swap(&pattern[i], &pattern[k], sizeof(char));
+		}
+	}
+	free(candidate);
 }
 
 int main(int argc, char **argv)
 {
-    char    *pattern;
-    int     n;
-    int     k;
+	char *pattern;
+	int	k;
+	int	n;
 
-    if (argc != 2)
-        return (1);
-    pattern = argv[1];
-    n = ft_strlen(pattern);
-    k = 0;
-    permutation (pattern, k, n);
-    return (0);
+	pattern = argv[1];
+	k = 0;
+	n = strlen(pattern);
+	permutation(pattern, k, n);
+	return (0);
 }
