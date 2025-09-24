@@ -23,13 +23,14 @@ bool    is_solution(int target, int *nums, int *a, int n)
     return (false);
 }
 
-void    print_solution(int *nums, int *a, int n)
+void    print_solution(int *a, int *nums, int n)
 {
-    static bool any_solution = false;
-    int i;
-    bool found = false;
+    static bool solved = false;
+    bool        found = false;
+    int         i;
 
-    for (i = 0; i < n; i++)
+    i = -1;
+    while (++i < n)
     {
         if (a[i])
         {
@@ -37,17 +38,14 @@ void    print_solution(int *nums, int *a, int n)
                 printf(" ");
             printf("%d", nums[i]);
             found = true;
+            solved = true;
         }
     }
     if (found && n != 0)
-    {
         printf("\n");
-        any_solution = true;
-    }
-    // Only print a newline at the end if no solution was printed
-    if (n == 0 && !any_solution)
+    if (!solved && n == 0)
         printf("\n");
-}
+} 
 
 void    build_candidate(int *c, int *nc)
 {
@@ -65,7 +63,7 @@ void    powerset(int target, int *nums, int *a, int k, int n)
     if (k == n)
     {
         if (is_solution(target, nums, a, n))
-            print_solution(nums, a, n);
+            print_solution(a, nums, n);
     }
     else
     {

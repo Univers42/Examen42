@@ -1,123 +1,106 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   powerset.c                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/20 15:34:49 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/20 15:35:08 by dlesieur         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <unistd.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 
 # define MAX_CANDIDATES 2
-//./usage 12 2 3 4 5 1 0 7
-bool	is_solution(int *a, int *nums, int n, int target)
-{
-	int i;
-	int	res;
 
-	i = 0;
-	res = 0;
-	while (i < n)
-	{
-		if (a[i])
-			res += nums[i];
-		i++;
-	}
-	if (res == target)
-		return (true);
-	return (false);
+bool    is_solution(int target, int *nums, int *a, int n)
+{
+    int i;
+    int res;
+
+    i = -1;
+    res = 0;
+    while (++i < n)
+    {
+        if (a[i])
+            res += nums[i];
+    }
+    if (res == target)
+        return (true);
+    return (false);
 }
 
-void	print_solution(int *a, int *nums, int n)
+void    print_solution(int *a, int *nums, int n)
 {
-	int	i;
+    static bool solved = false;
+    bool        found = false;
+    int         i;
 
-	i = 0;
-	while (i < n)
-	{
-		if (a[i])
-			printf("%d ", nums[i]);
-		i++;
-	}
-	printf("\n");
+    i = -1;
+    while (++i < n)
+    {
+        if (a[i])
+        {
+            if (found)
+                printf(" ");
+            printf("%d", nums[i]);
+            found = true;
+            solved = true;
+        }
+    }
+    if (found && n != 0)
+        printf("\n");
+    if (!solved && n == 0)
+        printf("\n");
+} 
+
+void    build_candidate(int *c, int *nc)
+{
+    c[0] = 1;
+    c[1] = 0;
+    *nc = 2;
 }
 
-void	build_candidate(int *c, int *nc)
+void    powerset(int target, int *nums, int *a, int k, int n)
 {
-	c[0] = 1;
-	c[1] = 0;
-	*nc = 2;
+    int candidate[MAX_CANDIDATES];
+    int nc;
+    int i;
+
+    if (k == n)
+    {
+        if (is_solution(target, nums, a, n))
+            print_solution(a, nums, n);
+    }
+    else
+    {
+        i = -1;
+        build_candidate(candidate, &nc);
+        while (++i  < nc)
+        {
+            a[k] = candidate[i];
+            powerset(target, nums, a, k + 1, n);
+        }
+    }
 }
 
-void	make_move(int *a, int k, int  value)
+int main(int argc, const char **argv)
 {
-	a[k] = value;
-}
+    int target;
+    int *nums;
+    int n;
+    int *a;
+    int i;
+    int k;
 
-void	unmake_move(int *a, int k, int value)
-{
-	(void)a;
-	(void)k;
-	(void)value;
-}
-
-void    powerset(int *a, int *nums, int k, int n, int target)
-{
-	int candidates[2];
-	int nc;
-	int i;
-
-	if (k == n)
-	{
-		if (is_solution(a, nums, n, target))
-			print_solution(a, nums, n);
-		return;
-	}
-	else
-	{
-		build_candidate(candidates, &nc);
-		i = -1;
-		while (++i < nc)
-		{
-			make_move(a, k, candidates[i]);
-			powerset(a, nums, k + 1, n, target);
-			unmake_move(a, k, candidates[i]);
-		}
-	}
-}
-
-int main(int argc, char **argv)
-{
-	int	*a;
-	int	*nums;
-	int	n;
-	int	target;
-	int	i;
-	int	k;
-
-	if (argc == 1)
-		return (1);
-	n = argc - 2;
-	target = atoi(argv[1]);
-	a = calloc(n, sizeof(int));
-	if (!a)
-		return (1);
-	nums = calloc(n, sizeof(int));
-	if (!nums)
-		return (free(a), 1);
-	i = -1;
-	k = 0;
-	while (++i < n)
-		nums[i] = atoi(argv[i + 2]);
-	powerset(a, nums, k, n, target);
-	return (free(a), free(nums), 0);
+    if (argc < 3)
+        return (1);
+    target = atoi(argv[1]);
+    n = argc - 2;
+    a = calloc(n, sizeof(int));
+    if (!a)
+        return (2);
+    nums = calloc(n, sizeof(int));
+    if (!nums)
+        return (free(a), 3);
+    i = -1;
+    while (++i < n)
+        nums[i] = atoi(argv[i + 2]);
+    k = 0;
+    powerset(target, nums, a, k, n);
+    print_solution(nums, a, 0);
+    return (free(a), free(nums), 0);
 }
