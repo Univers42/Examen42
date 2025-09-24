@@ -1,121 +1,109 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
 
-/*
-** Reverse-lexicographic step: find the next permutation in alphabetical order.
-** 1) Find the rightmost index i where s[i] < s[i + 1] (the pivot).
-** 2) Find the rightmost j > i with s[j] > s[i] (successor), swap i and j.
-** 3) Reverse the suffix starting at i + 1 to restore minimal order.
-** Returns 1 if a next permutation exists, 0 if we were at the last one.
-*/
-static int	next_permutation(char *s, int n)
+int     ft_strlen(const char *str)
 {
-	int	 i;
-	int	 j;
-	int	 l;
-	int	 r;
-	char tmp;
+    int i;
 
-	i = n - 2;
-	while (i >= 0 && s[i] >= s[i + 1])
-		i--;
-	if (i < 0)
-		return (0);
-	j = n - 1;
-	while (s[j] <= s[i])
-		j--;
-	tmp = s[i];
-	s[i] = s[j];
-	s[j] = tmp;
-	l = i + 1;
-	r = n - 1;
-	while (l < r)
-	{
-		tmp = s[l];
-		s[l] = s[r];
-		s[r] = tmp;
-		l++;
-		r--;
-	}
-	return (1);
+    i = 0;
+    while (str[i])
+        i++;
+    return (i);
 }
 
-/*
-** In-place selection sort of the characters so we start from the smallest
-** (alphabetical) arrangement, as required by the subject.
-*/
-static void	sort_chars(char *s, int n)
+void    ft_swap(void *a, void *b, size_t n)
 {
-	int	 i;
-	int	 j;
-	int	 min;
-	char tmp;
+    unsigned char *pa;
+    unsigned char *pb;
 
-	i = 0;
-	while (i < n - 1)
+    pa = (unsigned char *)a;
+    pb = (unsigned char *)b;
+
+    if (*pa == *pb)
+        return ;
+    while (n--)
+        (*pa ^= *pb),(*pb ^= *pa),(*pa++ ^= *pb++);
+}
+
+void	selection_sort(char *pattern, int *candidate, int *nc)
+{
+	int	i;
+	int	j;
+
+	i = -1;
+	while (++i < *nc - 1)
 	{
-		min = i;
-		j = i + 1;
-		while (j < n)
-		{
-			if (s[j] < s[min])
-				min = j;
-			j++;
-		}
-		if (min != i)
-		{
-			tmp = s[i];
-			s[i] = s[min];
-			s[min] = tmp;
-		}
-		i++;
+		j = i;
+		while (++j < *nc)
+			if (pattern[candidate[i]] > pattern[candidate[j]])
+				ft_swap(&candidate[i], &candidate[j], sizeof(int));
 	}
 }
 
-/*
-** Simple strlen replacement: count characters until the null-terminator.
-*/
-static int	ft_strlen(const char *s)
+void    build_candidate(int *c, int *nc, int n, char *pattern, int k)
 {
-	int i;
+    int i;
 
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
+    i = k;
+    *nc = 0;
+    while (i < n)
+    {
+        c[*nc] = i;
+        (*nc)++;
+        i++;
+    }
+    selection_sort(pattern, c, nc);
 }
 
-int	main(int argc, char **argv)
+void    make_move(char *a, char *b)
 {
-	char	*src;
-	char	*pattern;
-	int	 n;
-	int	 i;
+    ft_swap(a, b, sizeof(char));
+}
 
-	/* Validate input */
-	if (argc < 2 || !argv[1] || !argv[1][0])
-		return (0);
-	src = argv[1];
-	
-	/* Duplicate argv[1] to a writable buffer (do not modify argv directly). */
-	n = ft_strlen(src);
-	pattern = (char *)malloc((size_t)n + 1);
-	if (!pattern)
-		return (1);
-	i = 0;
-	while (i < n)
-	{
-		pattern[i] = src[i];
-		i++;
-	}
-	pattern[n] = '\0';
+void unmake_move(char *a, char *b)
+{
+    ft_swap(a, b, sizeof(char));
+}
 
-	/* Start from the sorted string, then iterate next_permutation. */
-	sort_chars(pattern, n);
-	puts(pattern);
-	while (next_permutation(pattern, n))
-		puts(pattern);
+void    permutation(char *pattern, int k, int n)
+{
+    int *candidate;
+    int nc;
+    int i;
+    int idx;
 
-	free(pattern);
-	return (0);
+    candidate = (int *)calloc(n, sizeof(int));
+    if (n == k)
+        puts(pattern);
+    else
+    {
+        build_candidate(candidate, &nc, n, pattern, k);
+        idx = -1;
+        while (++idx < nc)
+        {
+            i = candidate[idx];
+            make_move(&pattern[i], &pattern[k]);
+            permutation(pattern, k + 1, n);
+            unmake_move(&pattern[i], &pattern[k]);
+        }
+    }
+    free(candidate);
+}
+
+int main(int argc, char **argv)
+{
+    char    *pattern;
+    int     n;
+    int     k;
+
+    if (argc != 2)
+        return (1);
+    pattern = argv[1];
+    n = ft_strlen(pattern);
+    k = 0;
+    permutation (pattern, k, n);
+    return (0);
 }
