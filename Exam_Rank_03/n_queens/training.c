@@ -1,89 +1,92 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-void print_solution(int *a, int n)
-{
-    int i;
-    int first;
+# define MAX_CANDIDATES 30
 
-    i = -1;
-    first = 1;
-    while (++i < n)
-    {
-        if (!first)
-            printf(" ");
-        printf("%d", a[i]);
-        first = 0;
-    }
-    if (!first)
-        printf("\n");
+void	print_solution(int *a, int n)
+{
+	static	bool solved = false;
+	int	i;
+	int	first = 0;
+
+	i = -1;
+	while (++i < n)
+	{
+		if (first)
+			fprintf(stdout, " ");
+		fprintf(stdout, "%d", a[i]);
+		solved = true;
+		first = 1;
+	}
+	if (first)
+		fprintf(stdout, "\n");
+	if (!solved && n == 0)
+		fprintf(stdout,  "\n");
 }
 
-static bool is_safe(int col, int k, int *a)
+bool	is_safe(int *a, int col, int k)
 {
-    int i;
+	int	i;
 
-    i = -1;
-    while (++i < k)
-        if (a[i] == col || a[i] + i == col + k || a[i] - i == col - k)
-            return (false);
-    return (true);
+	i = -1;
+	while (++i < k)
+	{
+		if(a[i] == col || a[i] - i == col - k|| a[i] + i == col + k)
+			return (false);
+	}
+	return  (true);
 }
 
-void    build_candidate(int *c, int *nc, int *a, int k, int n)
+void	build_candidate(int *c, int *nc, int *a, int k, int n)
 {
-    int col;
+	int	col;
 
-    col = -1;
-    *nc = 0;
-    while (++col < n)
-    {
-        if (is_safe(col, k, a))
-        {
-            c[*nc] = col;
-            (*nc)++;
-        }
-    }
+	col = -1;
+	*nc = 0;
+	while (++col < n)
+	{
+		if (is_safe(a, col, k))
+		{
+			c[*nc] = col;
+			(*nc)++;
+		}
+	}
 }
 
-void n_queen(int n, int k, int *a)
+void    n_queen(int *a, int k, int n)
 {
-    int candidate[n];
-    int nc;
-    int i;
+	int	candidate[MAX_CANDIDATES];
+	int	nc;
+	int	i;
 
-    if (k == n)
-        print_solution(a, n);
-    else
-    {
-        i = -1;
-        build_candidate(candidate, &nc, a, k, n);
-        while (++i < nc)
-        {
-            a[k] = candidate[i];    //make move
-            n_queen(n, k + 1, a);
-            //unmake_move
-        }
-    }      
+	if (k == n)
+		print_solution(a, n);
+	else
+	{
+		i = -1;
+		build_candidate(candidate, &nc, a, k, n);
+		while (++i < nc)
+		{
+			a[k] = candidate[i];
+			n_queen(a, k + 1, n);
+		}
+	}
 }
 
 int main(int argc, char **argv)
 {
-    int n;
-    int k;
-    int *a;
+	int k;
+	int n;
 
-    if (argc != 2)
-        return (1);
-    n = atoi(argv[1]);
-    a = calloc(n, sizeof(int));
-    if (!a)
-        return (2);
-    k = 0;
-    n = atoi(argv[1]);
-    n_queen(n, k, a);
-    return (free(a), 0);
+	if (argc != 2)
+		return (1);
+	n = atoi(argv[1]);
+	int	a[n];
+	k = 0;
+	n_queen(a, k, n);
+	print_solution(a, 0);
+	return (0);
 }
