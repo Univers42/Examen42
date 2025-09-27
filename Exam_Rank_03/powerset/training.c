@@ -1,201 +1,121 @@
-#include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-<<<<<<< Updated upstream
-=======
-#include <fcntl.h>
->>>>>>> Stashed changes
-#include <stdbool.h>
+#include <string.h>
 
-# define MAX_CANDIDATES 2
-
-<<<<<<< Updated upstream
-bool is_solution(int target, int *nums, int *a, int n)
+typedef struct s_ctx
 {
-	int i;
-	int	res;
+    const int   *orig;      // original numbers (argv[2..])
+    int         n;          //count of original numbers
+    const int   *uniq;       //unique sorted values
+    const int   *cnt;       // counts per unique values
+    int         m;          // number of unique values
+    int         *pick;      //how many of each unique value
+    long long   target;     
+}t_ctx;
 
-	i = -1;
-	res = 0;
-	while (++i < n)
-	{
-		if (a[i])
-			res += nums[i];
-	}
-	if (res == target)
-		return (true);
-	return (false);
+static int cmp_int(const void *a, const void *b)
+{
+    int ia;
+    int ib;
+
+    ia = *(const int *)a;
+    ib = *(const int *)b;
+    return (ia > ib) - (ia < ib);
 }
 
-void	print_solution(int *nums, int *a, int n)
+static int  lower_bound(const int *arr, int n, int key)
 {
-	static bool solved = false;
-	bool found = false;
-	int	i;
+    int lo;
+    int hi;
+    int mid;
 
-	i = -1;
-	while (++i < n)
-	{
-		if (a[i])
-		{
-			if (found)
-				printf(" ");
-			printf("%d", nums[i]);
-			solved = true;
-			found = true;
-		}
-	}
-	if (found && n > 0)
-		printf("\n");
-	if (!solved && n == 0)
-		printf("\n");
-=======
-bool    ensure_target(int target, int *nums, int *a, int n)
-{
-    int         res;
-    int         i;
-
-    res = 0;
-    i = -1;
-    while (++i < n)
+    lo = 0;
+    hi = n;
+    while (lo < hi)
     {
-        if (a[i])
-            res += nums[i];
+        mid = lo + (hi - lo) / 2;
+        if (arr[mid] < key)
+            lo = mid + 1;
+        else
+            hi = mid;
     }
-    if (target == res)
-        return true;
-    return (false);
+    return (lo);
 }
 
-void    print_solution(int *nums, int *a, int n)
+static void print_solution(const t_ctx *ctx)
 {
-    static bool solved = false;
-    bool        found = false;
-    int         i = -1;
+    int total;
+    int i;
+    int  *left;
+    int first;
+    int v;
+    int idx;
 
-    while (++i < n)
+    total = 0;
+    i = 0;
+    while (i < ctx->m)
+        total += ctx->pick[++i];
+    left = (int *)calloc(ctx->m, sizeof(int));
+    if (!left)
+        return ;
+    memcpy(left, ctx->pick, sizeof(int) * ctx->m);
+    first = 1;
+    i = 0;
+    while (++i < ctx->n)
     {
-        if (a[i])
+        v = ctx->origi[i];
+        idx = lower_bound(ctx->uniq, ctx->m, v);
+        if (idx < ctx->m && ctx->uniq[idx] == v && left[idx] > 0)
         {
-            if (found)
-                printf(" ");
-            printf("%d", nums[i]);
-            found = true;
-            solved = true;
+            if (!first)
+                putchar(' ');
+            printf("%d", v);
+            left[idx]--;
+            first = 0;
         }
     }
-    if (found && n != 0)
-        printf("\n");
-    if (!solved && n == 0)
-        printf("\n");
->>>>>>> Stashed changes
+    putchar('\n');
+    free(left);
 }
 
-void	build_candidate(int *c, int *nc)
+static void dfs(int pos, long long sum, t_ctx *ctx)
 {
-	*nc = 2;
-	c[0] = 1;
-	c[1] = 0;
-}
+    int v;
+    int max_take;
+    int k;
 
-void    powerset(int target, int *nums, int *a, int k, int n)
-{
-	int candidate[MAX_CANDIDATES];
-	int nc;
-	int i;
-
-<<<<<<< Updated upstream
-	if (k == n)
-	{
-		if (is_solution(target, nums, a, n))
-			print_solution(nums, a, n);
-	}
-	else
-	{
-		i = -1;
-		build_candidate(candidate, &nc);
-		while (++i < nc)
-		{
-			a[k] = candidate[i];
-			powerset(target, nums, a, k + 1, n);
-		}
-	}
-=======
-    if (k == n)
-    {
-        if (ensure_target(target, nums, a, n))
-            print_solution(nums, a, n);
-    }
+    if (pos == ctx->m)
+        if (sum == ctx->target)
+            print_solution(ctx);
     else
     {
-        build_candidate(candidate, &nc);
-        i = -1;
-        while (++i  < nc)
+        v = ctx->uniq[pos];
+        max_take = ctx->cnt[pos];
+        k = 0;
+        while (k <= max_take)
         {
-            a[k] = candidate[i];
-            powerset(target, nums, a, k + 1, n);
+            ctx->pick[pos] = k;
+            dfs(pos + 1, sum + (long long)k * v, ctx);
         }
+        ctx->pick[pos] = 0;
     }
->>>>>>> Stashed changes
 }
 
 int main(int argc, char **argv)
 {
-<<<<<<< Updated upstream
-	//general variables
-	int *a;
-	int k;
-	int n;
-	int i;
-	//ctx_variables
-	int target;
-	int *nums;
+    long long   target;
+    int         n;
+    int         *orig;
 
-	if (argc <= 2)
-		return (1);
-	n = argc - 2;
-	a = calloc(n, sizeof(int));
-	if (!a)
-		return (1);
-	k = 0;
-	target = atoi(argv[1]);
-	nums = calloc(n, sizeof(int));
-	if (!nums)
-		return (free(a), 1);
-	i = -1;
-	while (++i < n)
-		nums[i] = atoi(argv[i + 2]);
-	powerset(target, nums, a, k, n);
-	print_solution(nums, a, 0);
-	free(a);
-	free(nums);
-	return (0);
-}
-=======
-    int     target;
-    int     *nums;
-    int     n;
-    int     i;
-    int     *a;
-    int     k;
-
-    if (argc < 2)
-        return (1);
+    target = atoll(argv[1]);
     n = argc - 2;
-    a = calloc(n, sizeof(int));
-    if (!a)
-        return (1);
-    nums = calloc(n, sizeof(int));
-    if (!nums)
-        return (free(a), 3);
-    target = atoi(argv[1]);
-    i = -1;
+    orig = (int *)malloc(sizeof(int) * n);
+    if (!orig) return 1;
+    i = 0;
     while (++i < n)
-        nums[i] = atoi(argv[i + 2]);
-    k = 0;
-    powerset(target, nums, a, k, n);
-    print_solution(nums, a, 0); // I forget this case sometimes
-    return (free(a), free(nums), 0);
+        orig[i] = atoi(argv[i + 2]);
+    if (argc < 3)
+        return (0);
+
+
 }
->>>>>>> Stashed changes
