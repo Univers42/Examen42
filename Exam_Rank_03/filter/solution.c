@@ -4,7 +4,7 @@
 #include <string.h>
 
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE 1024
+# define BUFFER_SIZE (1024UL * 1024UL * 1024UL * 10UL)
 #endif
 
 # define GLYPH '*'
@@ -60,7 +60,10 @@ int main(int argc, const char **argv)
     capacity = BUFFER_SIZE;
     buffer = calloc(capacity, sizeof(char));
     if (!buffer)
+    {
+        perror("Error: ");
         return (2);
+    }
     total_read = 0;
     readn = read(STDIN_FILENO, buffer, capacity);
     while (readn > 0)
@@ -71,7 +74,10 @@ int main(int argc, const char **argv)
             capacity *= 2;
             tmp = realloc(buffer, capacity);
             if (!tmp)
+            {
+                perror("Error :");
                 return (free(buffer), buffer = NULL, 3);
+            }
             buffer = tmp;
         }
         readn = read(STDIN_FILENO, buffer + total_read, capacity - total_read);
