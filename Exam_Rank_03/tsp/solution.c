@@ -6,14 +6,15 @@
 /*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/20 23:32:55 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/20 23:58:43 by dlesieur         ###   ########.fr       */
+/*   Updated: 2025/09/29 20:10:20 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -25,72 +26,66 @@ typedef struct s_city
 	float	y;
 }	t_city;
 
-typedef struct s_state
+typedef struct s_tsp
 {
 	t_city	cities[MAX_CITIES];
 	int		path[MAX_CITIES];
 	int		best_path[MAX_CITIES];
-	int		used[MAX_CITIES];
+	bool	used[MAX_CITIES];
 	int		n;
 	float	best_length;
-}	t_state;
+}	t_tsp;
 
-void	ft_swap(int *a, int *b)
-{
-	(*a ^= *b), (*b ^= *a), (*a ^= *b);
-}
-
-bool	is_solution(int k, int n)
-{
-	return (k == n);
-}
-
-void	print_solution(t_state *tsp)
+void print_solution(t_tsp *tsp)
 {
 	printf("%.2f\n", tsp->best_length);
 }
 
-void	build_candidate(t_state *tsp, int *candidates, int *nc, int n)
+void	build_candiate(t_tsp *tsp, int *c, int *nc, int n)
 {
-	int i = -1;
+	int	i;
 
 	*nc = 0;
-	while (++i < n)
-		if (!tsp->used[i])
-			candidates[(*nc)++] = i;
-}
-
-void	make_move(t_state *tsp, int city)
-{
-	tsp->used[city] = true;
-}
-
-void	unmake_move(t_state *tsp, int city)
-{
-	tsp->used[city] = false;
-}
-
-float path_length(t_state *tsp, int *p, int n)
-{
-	float len = 0.0f;
-	int i = -1;
-	int a;
-	int b;
-	float dx;
-	float dy;
-
+	i = -1;
 	while (++i < n)
 	{
-		a = p[i];
-		b = p[(i + 1) % n];
-		dx = tsp->cities[a].x - tsp->cities[b].x;
-		dy = tsp->cities[a].y - tsp->cities[b].y;
-		len += sqrtf(dx * dx + dy * dy);
+		if (!tsp->used[i])
+			c[(*nc)++] = i;
+	}
+}
+
+bool	terminate(t_tsp *tsp, float len, int n)
+{
+	if (tsp->best_length < 0 || len < tsp->best_length)
+	{
+		tsp->best_length = len;
+		memcpy(tsp->best_path, tsp->path, sizeof(int) * n);
+		return (true);
+	}
+	return (false);
+}
+
+float	path_length(t_tsp *tsp, int *p, int n)
+{
+	float	len = 0.0f;
+	int		i;
+	int		coord[2];
+	float	dist[2];
+
+	i = -1;
+	while (++i < n)
+	{
+		coord[0] = p[i];
+		coord[1] = p[(i + 1) % n];
+		dist[0] = tsp->cities[coord[0]].x - tsp->cities[coord[1]].x;
+		dist[1] = tsp->cities[coord[0]].y - tsp->cities[coord[1]].y;
+		len += sqrtf(dist[0] * dist[0] + dist[1] * dist[1]);
 	}
 	return (len);
 }
 
-void	tsp_backtrack(t_state *tsp, int k, int n)
+// Rename tsp to tsp_func to avoid shadowing struct name
+void	tsp_func(t_tsp *tsp, int k, int n)
 {
 	float	len;
 	int		candidates[MAX_CITIES];
@@ -98,56 +93,53 @@ void	tsp_backtrack(t_state *tsp, int k, int n)
 	int		i;
 	int		city;
 
-	if (is_solution(k, n))
+	if (k == n)
 	{
 		len = path_length(tsp, tsp->path, n);
-		if (tsp->best_length < 0 || len < tsp->best_length)
-		{
-			tsp->best_length = len;
-			memcpy(tsp->best_path, tsp->path, sizeof(int) * n);
-		}
-		return;
+		terminate(tsp, len, n);
 	}
-	build_candidate(tsp, candidates, &nc, n);
-	i = -1;
-	while (++i < nc)
+	else
 	{
-		city = candidates[i];
-		tsp->path[k] = city;
-		make_move(tsp, city);
-		tsp_backtrack(tsp, k + 1, n);
-		unmake_move(tsp, city);
+		build_candiate(tsp, candidates, &nc, n);
+		i = -1;
+		while (++i < nc)
+		{
+			city = candidates[i];
+			tsp->path[k] = city;
+			tsp->used[city] = true;
+			tsp_func(tsp, k + 1, n);
+			tsp->used[city] = false;
+		}
 	}
 }
 
-int main (int argc, char **argv)
+int	main(int argc, char **argv)
 {
 	FILE	*stream;
-	t_state	tsp;
+	t_tsp	tsp;
+	int		i;
 
-	tsp.n = 0;
+	memset(&tsp, 0, sizeof(t_tsp));
 	tsp.best_length = -1.0f;
-	memset(tsp.used, 0, sizeof(tsp.used));
-	if (argc == 2)
+	if (argc != 2)
+		return (1);
+	stream = fopen(argv[1], "r");
+	if (!stream)
 	{
-		stream = fopen(argv[1], "r");
-		if (!stream)
-		{
-			perror("fopen");
-			exit(EXIT_FAILURE);
-		}
+		perror("Error : ");
+		return (1);
 	}
-	else
-		stream = stdin;
-	while (tsp.n < MAX_CITIES && fscanf(stream, "%f, %f\n", &tsp.cities[tsp.n].x, &tsp.cities[tsp.n].y) == 2)
-		tsp.n++;
-	if (stream != stdin)
-		fclose(stream);
+	i = 0;
+	while (i < MAX_CITIES &&
+		fscanf(stream, "%f,%f", &tsp.cities[i].x, &tsp.cities[i].y) == 2)
+		i++;
+	tsp.n = i;
+	fclose(stream);
 	if (tsp.n == 0)
 		return (0);
 	tsp.path[0] = 0;
 	tsp.used[0] = true;
-	tsp_backtrack(&tsp, 1, tsp.n);
+	tsp_func(&tsp, 1, tsp.n);
 	print_solution(&tsp);
 	return (0);
 }
