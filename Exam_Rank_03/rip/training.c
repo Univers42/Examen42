@@ -1,155 +1,119 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   training.c                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/13 20:10:19 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/20 17:23:13 by dlesieur         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-#ifndef DYN_STR
-# define DYN_STR 1
-# ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1024
-# endif
-#endif
+# define MAX_LEN 1024
 
-int current_removal = 0;
-int current_balance = 0;
-int min_rem = 0;
-
-int	ft_strlen(char *str)
+int	ft_strlen(const char *str)
 {
 	char *tmp;
 
 	tmp = str;
-	while (*tmp++);
+	while (*tmp++)
+		;
 	return (tmp - str - 1);
 }
 
-void	make_move(char *seq, int *a, int k, int value) {
-    // Update removal count and balance based on decision
-    if ((seq[k] == '(' || seq[k] == ')') && value == 0)
-        current_removal++;
-    else if (value == 1) {
-        if (seq[k] == '(')
-            current_balance++;
-        else if (seq[k] == ')')
-            current_balance--;
-    }
-    a[k] = value;
-}
-
-void	unmake_move(char *seq, int *a, int k, int value) {
-    // Revert the effects of make_move
-	(void)a;
-    if ((seq[k] == '(' || seq[k] == ')') && value == 0)
-        current_removal--;
-    else if (value == 1) {
-        if (seq[k] == '(')
-            current_balance--;
-        else if (seq[k] == ')')
-            current_balance++;
-    }
-    // leave a[k] as-is; it will be overwritten on the next decision
-}
-
-void print_solution(char *seq, int *a, int n) {
-    for (int i = 0; i < n; i++) {
-        if ((seq[i] == '(' || seq[i] == ')') && a[i] == 0)
-            write(1, "_", 1);
-        else
-            write(1, &seq[i], 1);
-        write(1, " ", 1); // always print a space after each character
-    }
-    write(1, "\n", 1);
-}
-
-void	build_candidate(char *seq, int k, int *candidate, int *nc) {
-    if (seq[k] == '(' || seq[k] == ')') {
-        candidate[0] = 1; // keep
-        candidate[1] = 0; // remove
-        *nc = 2;
-    } else {
-        candidate[0] = 1;
-        *nc = 1;
-    }
-}
-
-void	rip(char *seq, int *a, int k, int n)
+void	print_solution(char *buf, int n)
 {
-	int candidate[2];
-	int nc;
-	int i;
-
-    // Prune: too many removals or invalid balance
-    if (current_removal > min_rem || current_balance < 0)
-		return;
-	if (k == n) {
-        if (current_removal == min_rem && current_balance == 0)
-            print_solution(seq, a, n);
-        return;
-    }
-    build_candidate(seq, k, candidate, &nc);
-    for (i = 0; i < nc; i++) {
-        make_move(seq, a, k, candidate[i]);
-        rip(seq, a, k + 1, n);
-        unmake_move(seq, a, k, candidate[i]);
-    }
+	write(1, buf, n);
+	write(1,"\n",1);
 }
 
-void append_char(char *buf, int *len, char c) {
-    buf[*len] = c;
-    (*len)++;
+void	compute_removals(const char *s, int n, int *lr, int *rr)
+{
+	int	i;
+	int	bal;
+
+	i = 0;
+	bal = 0;
+	*lr = 0;
+	*rr = 0;
+	while (i < n)
+	{
+		if (s[i] == '(')
+			bal++;
+		else if (s[i] == ')')
+		{
+			if (bal == 0)
+				(*rr)++;
+			else
+				bal--;
+		}
+		i++;
+	}
+	*lr = bal;
 }
 
-// Preprocess input: remove spaces, keep only '(' and ')'
-char *preprocess_input(const char *input, int *out_len) {
-    int len = 0;
-    int input_len = strlen(input);
-    char *buf = malloc(input_len + 1);
-    if (!buf)
-        return NULL;
-    for (int i = 0; input[i]; i++) {
-        if (input[i] == '(' || input[i] == ')')
-            append_char(buf, &len, input[i]);
-    }
-    buf[len] = '\0';
-    *out_len = len;
-    return buf;
+static void	dfs_build(const char *src, char *cur, int n, int k, int bal, int lr, int rr);
+
+static void	rec_open(const char *src, char *cur, int n, int k, int bal, int lr, int rr)
+{
+	cur[i] = '(';
+	dsf_build(src,cur, n, k + 1, bal + 1, lr, rr);
+	if (lr > 0)
+	{
+		cur[i] = ' ';
+		dsf_build(src, cur, n, k + 1, bal, lr - 1, rr);
+	}
 }
 
-int main(int argc, char **argv) {
-    if (argc != 2)
-        return 1;
-    int n;
-    char *seq = preprocess_input(argv[1], &n);
-    if (!seq)
-        return 1;
-    int left = 0, right = 0;
-    for (int i = 0; seq[i]; i++) {
-        if (seq[i] == '(')
-            left++;
-        else if (seq[i] == ')') {
-            if (left > 0)
-                left--;
-            else
-                right++;
-        }
-    }
-    min_rem = left + right;
-    int *a = calloc(n, sizeof(int));
-    rip(seq, a, 0, n);
-    free(a);
-    free(seq);
-    return 0;
+static void	close_open(const char *src, char *cur, int n, int k, int bal, int lr , int rr)
+{
+	if (bal > 0)
+	{
+		cur[i] = ')';
+		dfs_build(src, cur, n, k + 1, bal - 1, lr, rr);
+	}
+	if (rr > 0)
+	{
+		cur[i] = ' ';
+		dfs_build(src, cur, n, k + 1, bal, lr, rr - 1;
+	}
+}
+
+static void	dfs_build(const char *src, char *cur, int n, int k, int bal, int lr, int rr)
+{
+	char	c;
+
+	if (k == n)
+	{
+		if (bal == 0 && lr == 0 && rr == 0)
+			print_solution(cur, n);
+	}
+	else
+	{
+		c = src[i];
+		if (c == '(')
+			rec_open(src, cur, n, k, bal, lr, rr);
+		else if (c == ')')
+			rec_close(src, cur, n, k, bal, lr, rr);
+		else
+		{
+			cur[i] = c;
+			dsf_build(src, cur, n, i + 1, bal, lr, rr);
+		}
+	}
+}
+
+int main(int argc, char **argv)
+{
+	char	buf[MAX_LEN];
+	int		n
+	int		lr;
+	int		rr;
+
+	if (argc != 2)
+	{
+		write(1, "\n", 1);
+		return (0);
+	}
+	n = ft_strlen(argv[1]);
+	if (n > MAX_LEN)
+		n = MAX_LEN;
+	compute_removals(argv[1], n, &lr, &rr);
+	dfs_build(argv[1], buf, n, 0,0, lr, rr);
+	return (0);
 }
