@@ -1,105 +1,106 @@
+
 #include "get_next_line.h"
 
-int	ensure_cap(char **line, size_t *cap, size_t need)
+static int	ensure_cap(char	**line, size_t *cap, size_t need)
 {
-	char	*tmp;
+	void	*tmp;
 	size_t	new_cap;
 
 	if (*cap >= need)
-		return (EXIT_SUCCESS);
+		return (1);
 	if (*cap)
 		new_cap = *cap;
 	else
 		new_cap = 64;
 	while (new_cap < need)
 		new_cap *= 2;
-	tmp = (char *)ft_realloc(*line, *cap, new_cap);
+	tmp = ft_realloc(*line, *cap, new_cap);
 	if (!tmp)
-		return (EXIT_FAILURE);
+		return (0);
 	*line = tmp;
 	*cap = new_cap;
-	return (EXIT_SUCCESS);
-}
-
-int	refill(t_file *f, int fd)
-{
-	ssize_t readn;
-
-	readn = read(fd, f->buf, BUFFER_SIZE);
-	if (readn <= 0)
-		return ((int)readn);
-	f->cur = f->buf;
-	f->end = f->buf + readn;
 	return (1);
 }
 
-int append_from_buffer(t_file *f, t_dynstr *line)
+static int	refill(t_file *stream, int fd)
 {
-    char    *nl;
-    size_t  chunk;
-    size_t  avail;
+	ssize_t	readn;
 
-    avail = (size_t)(f->end - f->cur);
-    nl = ft_memchr(f->cur, '\n', avail);
-    if (nl)
-        chunk = (size_t)(nl - f->cur + 1); // <-- fix pointer math here too!
-    else
-        chunk = avail;
-    if (ensure_cap(&line->buf, &line->cap, line->size + chunk + 1) != EXIT_SUCCESS)
-        return (-1); // return immediately on error!
-    ft_memmove(line->buf + line->size, f->cur, chunk);
-    line->size += chunk;
-    line->buf[line->size] = '\0';
-    f->cur += chunk;
-    return (nl != NULL);
+	readn = read(fd, stream->buf, BUFFER_SIZE);
+	if (readn <= 0)
+		return ((int)readn);
+	stream->cur = stream->buf;
+	stream->end = stream->buf + readn;
+	return (1);
 }
 
-int	nl_scan(t_file *f, t_dynstr *line, int fd)
+static int	append_from_buffer(t_file *stream, t_dynstr *line)
 {
-	int	st;
+	char	*nl;
+	size_t	avail;
+	size_t	chunk;
 
-	while (SCANNING)
+	avail = (size_t)(stream->end - stream->cur);
+	nl = (char *)ft_memchr(stream->cur, '\n', avail);
+	if (nl)
+		chunk = (size_t)(nl - stream->cur + 1);
+	else
+		chunk = avail;
+	if (!ensure_cap(&line->buf, &line->cap, line->size + chunk + 1))
+		return (-1);
+	ft_memmove(line->buf + line->size, stream->cur, chunk);
+	line->size += chunk;
+	line->buf[line->size] = '\0';
+	stream->cur += chunk;
+	return (nl != NULL);
+}
+
+static int		scan_nl(t_file *stream, t_dynstr *line, int fd)
+{
+	int st;
+
+	while (1)
 	{
-		if (f->cur >= f->end)
+		if (stream->cur >= stream->end)	// error > instead of >=
 		{
-			st = refill(f, fd);
+			st = refill(stream, fd);
 			if (st <= 0)
 				break ;
 		}
-		st = append_from_buffer(f, line);
+		st = append_from_buffer(stream, line);
 		if (st == -1)
-			return (EXIT_FAILURE);
+			return (0);
 		if (st == 1)
-			break;
+			break ;
 	}
-	return (EXIT_SUCCESS);
+	return (1);
 }
 
-char *get_next_line(int fd)
+char	*get_next_line(int fd)
 {
-    static t_file    f = {{0}, 0, 0};
-    t_dynstr         line = {NULL, 0, 0};
+	static t_file	stream = {{0}, 0, 0};
+	t_dynstr		line = {NULL,0,0};
 
-    if (fd < 0 || BUFFER_SIZE <= 0)
-        return (NULL);
-    if (nl_scan(&f, &line, fd) != EXIT_SUCCESS)
-        return (RESET_BUF(line.buf), NULL);
-    if (line.size == 0)
-        return (RESET_BUF(line.buf), NULL);
-    return (line.buf);
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return  (NULL);
+	if (!scan_nl(&stream, &line, fd))
+		return (RESET_BUF(line.buf), NULL);
+	if (line.size == 0)
+		return (RESET_BUF(line.buf), NULL);
+	return (line.buf);
 }
 
 __attribute__((weak))
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
-	char *line;
-	int fd;
+	char	*line;
+	int		fd;
 
-	if (argc !=  2)
+	if (argc != 2)
 		return (1);
 	fd = open(argv[1], O_RDONLY);
 	if (fd < 0)
-		return (1);
+		return (2);
 	line = get_next_line(fd);
 	while (line)
 	{
@@ -107,6 +108,5 @@ int main(int argc, char **argv)
 		free(line);
 		line = get_next_line(fd);
 	}
-	close(fd);
 	return (0);
 }
