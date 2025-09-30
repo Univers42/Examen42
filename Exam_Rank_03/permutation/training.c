@@ -1,88 +1,92 @@
 #include <unistd.h>
-#include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-void    ft_swap(void *ptr1, void *ptr2, size_t n)
+int	ft_strlen(const char *str)
 {
-    unsigned char *pa;
-    unsigned char *pb;
+	const char *tmp;
 
-    pa = (unsigned char *)ptr1;
-    pb = (unsigned char *)ptr2;
-    if (pa == pb)
-        return ;
-    while (n--)
-        (*pa ^= *pb), (*pb ^= *pa), (*pa++ ^= *pb++);
+	tmp = str;
+	while (*tmp++)
+		;
+	return (tmp - str - 1);
 }
 
-void    selection_sort(char *pattern, int *c, int *nc)
+void	ft_swap(void *a, void *b, size_t n)
 {
-    int i;
-    int j;
+	unsigned char *pa = (unsigned char *)a;
+	unsigned char *pb = (unsigned char *)b;
 
-    i = -1;
-    while (++i < *nc - 1)
-    {
-        j = i;
-        while (++j < *nc)
-        {
-            if (pattern[c[i]] > pattern[c[j]])
-                ft_swap(&c[i], &c[j], sizeof(int));
-        }
-    }
+	if (pa == pb)
+		return ;
+	while (n--)
+		(*pa ^= *pb), (*pb ^= *pa), (*pa++ ^= *pb++);
 }
 
-void    build_candidate(char *pattern, int *c, int *nc, int n, int k)
+void	selection_sort(int *c, int *nc, char *pattern)
 {
-    int i;
+	int	i;
+	int	j;
 
-    *nc = 0;
-    i = k;
-    while (i < n)
-    {
-        c[*nc] = i;
-        (*nc)++;
-        i++;
-    }
-    selection_sort(pattern, c, nc);
+	i = -1;
+	while (++i < *nc - 1)
+	{
+		j = i;
+		while (++j < *nc)
+		{
+			if (pattern[c[i]] > pattern[c[j]])
+				ft_swap(&c[i], &c[j], sizeof(int));
+		}
+	}
 }
 
-void    permutation(char *pattern, int k, int n)
+void	build_candidate(int *c, int *nc, char *pattern, int k, int n)
 {
-    int candidate[n];
-    int nc;
-    int i;
-    int idx;
+	int	i;
 
-    if (k == n)
-        puts(pattern);
-    else
-    {
-        i = -1;
-        build_candidate(pattern, candidate, &nc, n, k);
-        while (++i < nc)
-        {
-            idx = candidate[i];
-            ft_swap(&pattern[idx], &pattern[k], sizeof(char));
-            permutation(pattern, k + 1, n);
-            ft_swap(&pattern[idx], &pattern[k], sizeof(char));
-        }
-    }
+	i = k;
+	*nc = 0;
+	while (i < n)
+		c[(*nc)++] = i++;
+	selection_sort(c, nc, pattern);
 }
 
-int main(int argc, char **argv)
+void	permutation(char *pattern, int k, int n)
 {
-    char *pattern;
-    int k;
-    int n;
+	int	candidate[n];		//the error was here
+	int	nc;
+	int	i;
+	int	idx;
 
-    if (argc != 2)
-        return (1);
-    pattern = argv[1];
-    n = strlen(pattern);
-    k = 0;
-    permutation(pattern, k, n);
-    return (0);
+	if (k == n)
+		puts(pattern);
+	else
+	{
+		i = -1;
+		build_candidate(candidate, &nc, pattern, k, n);
+		while (++i < nc)
+		{
+			idx = candidate[i];
+			ft_swap(&pattern[idx], &pattern[k], sizeof(char));
+			permutation(pattern, k + 1, n);
+			ft_swap(&pattern[idx], &pattern[k], sizeof(char));			
+		}
+	}
+}
+
+int	main(int argc, char **argv)
+{
+	char	*pattern;
+	int		n;
+	int		k;
+
+	if (argc != 2)
+		return (1);
+	pattern = argv[1];
+	n = ft_strlen(pattern);
+	k = 0;
+	permutation(pattern, k, n);
+	return (0);
 }
