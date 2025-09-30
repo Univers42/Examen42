@@ -21,12 +21,12 @@ static int	ft_strlen(const char *s)
 		i++;
 	return (i);
 }
-
 static void	print_solution(char *buf, int n)
 {
 	write(1, buf, n);
 	write(1, "\n", 1);
 }
+
 
 static void	compute_removals(const char *s, int n, int *lr, int *rr)
 {
@@ -106,8 +106,8 @@ static void	dfs_build(const char *src, char *cur, int n, int i,
 int	main(int argc, char **argv)
 {
 	int		n;
-	int		lr;
-	int		rr;
+	int		lr;	//left removal
+	int		rr;	//right removal -- number of extra ')' parentehses to remove
 	char	buf[MAX_LEN];
 
 	if (argc != 2)
