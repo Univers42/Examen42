@@ -11,21 +11,22 @@ bool	is_solution(int target, int *nums, int *a, int n)
 	int	i;
 	int	res;
 
-	res = 0;
 	i = -1;
+	res = 0;
 	while (++i < n)
+	{
 		if (a[i])
 			res += nums[i];
-	return (res == target);
+	}
+	return (target == res);
 }
 
-void    print_solution(int *nums, int *a, int n)
+void	print_solution(int *nums, int *a, int n)
 {
 	int	i;
-	int	first;
+	int	first = 1;
 
 	i = -1;
-	first = 1;
 	while (++i < n)
 	{
 		if (a[i])
@@ -39,9 +40,16 @@ void    print_solution(int *nums, int *a, int n)
 	printf("\n");
 }
 
-void    powerset(int target, int *nums, int *a, int k, int n)
+void	build_candidate(int *c, int *nc)
 {
-	int	candidate[MAX_CANDIDATES];
+	c[0] = 1;
+	c[1] = 0;
+	*nc = 2;
+}
+
+void	powerset(int target, int *nums, int *a, int k, int n)
+{
+	int	candidate[2];
 	int	nc;
 	int	i;
 
@@ -52,10 +60,8 @@ void    powerset(int target, int *nums, int *a, int k, int n)
 	}
 	else
 	{
+		build_candidate(candidate, &nc);
 		i = -1;
-		candidate[0] = 1;
-		candidate[1] = 0;
-		nc = 2;
 		while (++i < nc)
 		{
 			a[k] = candidate[i];
@@ -64,14 +70,14 @@ void    powerset(int target, int *nums, int *a, int k, int n)
 	}
 }
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
 	int target;
-	int *nums;
-	int *a;
-	int k;
-	int n;
-	int i;
+	int	*nums;
+	int	*a;
+	int	k;
+	int	n;
+	int	i;
 
 	if (argc < 3)
 		return (1);
@@ -79,15 +85,16 @@ int main(int argc, char **argv)
 	n = argc - 2;
 	a = calloc(n, sizeof(int));
 	if (!a)
-		return (2);
+		return (1);
 	nums = calloc(n, sizeof(int));
 	if (!nums)
-		return (free(a), 3);
+		return(free(a), 2);
 	k = 0;
 	i = -1;
 	while (++i < n)
 		nums[i] = atoi(argv[i + 2]);
 	powerset(target, nums, a, k, n);
-	return (free(a), free(nums), 0);
-	
+	free(a);
+	free(nums);
+	return (0);
 }
