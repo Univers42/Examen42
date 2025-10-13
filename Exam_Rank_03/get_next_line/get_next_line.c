@@ -55,6 +55,7 @@ static int	append_from_buffer(t_file *stream, t_dynstr *line)
 	return (nl != NULL);
 }
 
+
 static int		scan_nl(t_file *stream, t_dynstr *line, int fd)
 {
 	int st;

@@ -1,26 +1,15 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   solution.c                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/20 23:32:55 by dlesieur          #+#    #+#             */
-/*   Updated: 2025/09/29 20:10:20 by dlesieur         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <math.h>
 
 # define MAX_CITIES 12
 
-typedef struct s_city
+typedef struct  s_city
 {
 	float	x;
 	float	y;
@@ -28,118 +17,105 @@ typedef struct s_city
 
 typedef struct s_tsp
 {
-	t_city	cities[MAX_CITIES];
+	t_city	city[MAX_CITIES];
 	int		path[MAX_CITIES];
 	int		best_path[MAX_CITIES];
 	bool	used[MAX_CITIES];
-	int		n;
-	float	best_length;
+	float	best_length;	
 }	t_tsp;
 
-void print_solution(t_tsp *tsp)
+static void     *ft_memcpy(void *dst, const void *src, size_t n)
 {
-	printf("%.2f\n", tsp->best_length);
+    unsigned char *d = (unsigned char *)dst;
+    const unsigned char *s = (const unsigned char *)src;
+
+    if (d == s)
+        return (dst);
+    while (n--)
+        *d++ = *s++;
+    return (dst);
 }
 
-void	build_candiate(t_tsp *tsp, int *c, int *nc, int n)
+static void    build_candidate(t_tsp *scan, int *c, int n, int *nc)
 {
-	int	i;
+    int i;
 
-	*nc = 0;
-	i = -1;
-	while (++i < n)
-	{
-		if (!tsp->used[i])
-			c[(*nc)++] = i;
-	}
+    i = -1;
+    *nc = 0;
+    while (++i < n)
+    {
+        if (!scan->used[i])
+            c[(*nc)++] = i;
+    }
 }
 
-bool	terminate(t_tsp *tsp, float len, int n)
+static float	pythagore_len(t_tsp *scan, int *p, int n)
 {
-	if (tsp->best_length < 0 || len < tsp->best_length)
-	{
-		tsp->best_length = len;
-		memcpy(tsp->best_path, tsp->path, sizeof(int) * n);
-		return (true);
-	}
-	return (false);
-}
-
-float	path_length(t_tsp *tsp, int *p, int n)
-{
-	float	len = 0.0f;
-	int		i;
 	int		coord[2];
 	float	dist[2];
+	float	len;
+	int		i;
 
+	len = 0.0f;
 	i = -1;
 	while (++i < n)
 	{
 		coord[0] = p[i];
 		coord[1] = p[(i + 1) % n];
-		dist[0] = tsp->cities[coord[0]].x - tsp->cities[coord[1]].x;
-		dist[1] = tsp->cities[coord[0]].y - tsp->cities[coord[1]].y;
+		dist[0] = scan->city[coord[0]].x - scan->city[coord[1]].x;
+		dist[1] = scan->city[coord[0]].y - scan->city[coord[1]].y;
 		len += sqrtf(dist[0] * dist[0] + dist[1] * dist[1]);
 	}
 	return (len);
 }
 
-// Rename tsp to tsp_func to avoid shadowing struct name
-void	tsp_func(t_tsp *tsp, int k, int n)
+void	tsp(t_tsp *scan, int k, int n)
 {
+	int     candidate[MAX_CITIES];
+	int     nc;
 	float	len;
-	int		candidates[MAX_CITIES];
-	int		nc;
-	int		i;
-	int		city;
+	int     city;
+	int     i;
 
 	if (k == n)
 	{
-		len = path_length(tsp, tsp->path, n);
-		terminate(tsp, len, n);
+		len = pythagore_len(scan, scan->path, n);
+		if (scan->best_length < 0 || scan->best_length > len)
+        {
+            scan->best_length = len;
+            ft_memcpy(scan->best_path, scan->path, n * sizeof(scan->path[0]));
+        }
+		return ;
 	}
-	else
+	i = -1;
+	build_candidate(scan, candidate, n, &nc);
+	while (++i < nc)
 	{
-		build_candiate(tsp, candidates, &nc, n);
-		i = -1;
-		while (++i < nc)
-		{
-			city = candidates[i];
-			tsp->path[k] = city;
-			tsp->used[city] = true;
-			tsp_func(tsp, k + 1, n);
-			tsp->used[city] = false;
-		}
+		city = candidate[i];
+		scan->path[k] = city;
+		scan->used[city] = true;
+		tsp(scan, k + 1, n);
+		scan->used[city] = false;
 	}
 }
 
 int	main(int argc, char **argv)
 {
 	FILE	*stream;
-	t_tsp	tsp;
-	int		i;
+	int		n;
+	t_tsp	scan = {{0}, {0}, {0}, {false}, -1.0f};
 
-	memset(&tsp, 0, sizeof(t_tsp));
-	tsp.best_length = -1.0f;
 	if (argc != 2)
 		return (1);
 	stream = fopen(argv[1], "r");
 	if (!stream)
-	{
-		perror("Error : ");
-		return (1);
-	}
-	i = 0;
-	while (i < MAX_CITIES &&
-		fscanf(stream, "%f,%f", &tsp.cities[i].x, &tsp.cities[i].y) == 2)
-		i++;
-	tsp.n = i;
+		return (perror("Error"), 1);
+	n = 0;
+	while (n < MAX_CITIES && fscanf(stream, "%f,    %f", &scan.city[n].x, &scan.city[n].y) == 2)
+		n++;
+	scan.used[0] = true;
+	tsp(&scan, 1, n);
+	printf("%.2f\n", scan.best_length);
 	fclose(stream);
-	if (tsp.n == 0)
-		return (0);
-	tsp.path[0] = 0;
-	tsp.used[0] = true;
-	tsp_func(&tsp, 1, tsp.n);
-	print_solution(&tsp);
 	return (0);
 }
