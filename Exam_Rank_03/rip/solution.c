@@ -1,118 +1,107 @@
-#include <stdio.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-int	ft_strlen(const char *src)
+static void compute_removal(const char *buffer, int n, int *lr, int *rr)
 {
-	const char *tmp = src;
+    int bal;
+    int i;
 
-	while (*tmp++)
-		;
-	return  (tmp - src - 1);
+    i = -1;
+    bal = 0;
+    *lr = 0;
+    *rr = 0;
+    while (++i < n)
+    {
+        if (buffer[i] == '(')
+            bal++;
+        else if (buffer[i] == ')')
+        {
+            if (bal > 0)        //The error was here
+                bal--;
+            else
+                (*rr)++;
+        }
+    }
+    *lr = bal;
 }
 
-void	compute_removals(const char *src, int *lr,  int *rr, int n)
-{
-	int	i;
-	int	bal;
+void    build_dfs(char *buffer, char *cur, int n, int k, int bal, int lr, int rr);
 
-	*lr = 0;
-	*rr = 0;
-	i = -1;
-	bal = 0;
-	while (++i < n)
-	{
-		if (src[i] == '(')
-			bal++;
-		else if (src[i] ==  ')')
-		{
-			if (bal == 0)
-				(*rr)++;
-			else
-				bal--;
-		}
-	}
-	*lr = bal;
+static void rec_open(char *buffer, char *cur, int n, int k, int bal, int lr, int rr)
+{
+    cur[k] = '(';
+    build_dfs(buffer, cur, n, k + 1, bal + 1, lr, rr);
+    if (lr > 0)
+    {
+        cur[k] = ' ';
+        build_dfs(buffer, cur, n, k + 1, bal, lr - 1, rr);
+    }
 }
 
-static void	dfs_build(char *src, char *cur, int k, int n, int bal, int lr,  int rr);
-
-void	rec_open(char *src, char *cur, int k, int n, int bal, int lr,  int rr)
-{	
-	cur[k] = '(';
-	dfs_build(src, cur, k + 1, n, bal + 1, lr, rr);
-	if (lr > 0)
-	{
-		cur[k] = ' ';
-		dfs_build(src, cur, k + 1, n, bal, lr - 1, rr);
-	}
+static void rec_close(char *buffer, char *cur, int n, int k, int bal, int lr, int rr)
+{
+    if (bal > 0)
+    {
+        cur[k] = ')';
+        build_dfs(buffer, cur, n, k + 1, bal - 1, lr, rr);
+    }
+    if(rr > 0)
+    {
+        cur[k] = ' ';
+        build_dfs(buffer, cur, n, k + 1, bal, lr, rr - 1);
+    }
 }
 
-void	rec_close(char *src, char *cur, int k, int n, int bal, int lr,  int rr)
+void    build_dfs(char *buffer, char *cur, int n, int k, int bal, int lr, int rr)
 {
-	if (bal > 0)
-	{
-		cur[k] = ')';
-		dfs_build(src, cur, k + 1, n, bal - 1, lr, rr);
-	}
-	if (rr > 0)
-	{
-		cur[k] = ' ';
-		dfs_build(src, cur, k + 1, n, bal, lr, rr - 1);
-	}
+    char    c;
+
+    if (k == n)
+    {
+        if (bal == 0 && lr == 0 && rr == 0)
+        {
+            write(1, cur, n);
+            write(1, "\n", 1);
+        }
+    }
+    else
+    {
+        c = buffer[k];
+        if (c == '(')
+            rec_open(buffer, cur, n, k, bal, lr, rr);
+        else if(c == ')')
+            rec_close(buffer, cur, n, k, bal, lr, rr);
+        else
+        {
+            cur[k] = c;
+            build_dfs(buffer, cur, n, k + 1, bal, lr, rr);
+        }
+    }
 }
 
-static void	dfs_build(char *src, char *cur, int k, int n, int bal, int lr,  int rr)
+int main(int argc, char **argv)
 {
-	char	c;
+    char    *buffer;
+    int     lr;
+    int     rr;
+    int     bal;
+    int     k;
+    int     n;
+    int     i;
 
-	if (k == n)
-	{
-		if (bal == 0 && lr == 0 && rr == 0)
-		{
-			write(STDOUT_FILENO, cur, n);
-			write(STDOUT_FILENO, "\n", 1);
-		}
-	}
-	else
-	{
-		c = src[k];
-		if (c == '(')
-			rec_open(src, cur, k, n, bal, lr, rr);
-		else if (c == ')')
-			rec_close(src, cur, k, n, bal, lr, rr);
-		else
-		{
-			cur[k] = c;
-			dfs_build(src, cur, k + 1, n, bal, lr, rr);
-		}
-	}
-}
-
-int	main(int argc, char **argv)
-{
-	char	*src;
-	int		k;
-	int		n;
-	int		bal;
-	int		lr;
-	int		rr;
-	int		i;
-
-	if (argc != 2)
-		return (1);
-	src = argv[1];
-	n = ft_strlen(src);
-	src = argv[1];
-	char	cur[n];
-	i = -1;
-	while (++i < n)
-		cur[i] = src[i];
-	k = 0;
-	bal = 0;
-	compute_removals(src, &lr, &rr, n);
-	dfs_build(src, cur, k, n, bal, lr, rr);
-	return (0);
+    if (argc != 2)
+        return (1);
+    buffer = argv[1];		//and here
+    n = strlen(buffer);
+    char    cur[n];
+    i = -1;
+    while (++i < n)
+        cur[i] = buffer[i];
+    compute_removal(buffer, n, &lr, &rr);
+    bal = 0;
+    k = 0;
+    build_dfs(buffer, cur, n, k, bal, lr, rr);
+    return (0);
 }
