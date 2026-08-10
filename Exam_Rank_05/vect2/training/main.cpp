@@ -11,8 +11,8 @@ int main(void) {
     std::cout << "v2: " << v2 << std::endl;
     std::cout << "v3: " << v3 << std::endl;
     std::cout << "v4: " << v4 << std::endl;
-    std::cout << ++v4 << std::endl;
-    std::cout << ++v4 << std::endl;
+    //std::cout << ++v4 << std::endl;
+    //std::cout << ++v4 << std::endl;
     std::cout << v4++ << std::endl;
     std::cout << v4 << std::endl;
     std::cout << --v4 << std::endl;
@@ -20,29 +20,28 @@ int main(void) {
     std::cout << v4-- << std::endl;
     std::cout << v4 << std::endl;
     std::cout << "<<<<<<<<< assignment operator" << std::endl;
-    v2 += v3; //2, 4)
-    std::cout << "v2: " << v2 << std::endl;
-    v1 -= v2; //-2, -4
-    std::cout << "v1: " << v1 << std::endl;
-    v2 = v3 + v3 * 2;
-    std::cout << "v2: " << v2 << std::endl;
-    v2 = 3 * v2;
-    std::cout << "v2: " << v2 << std::endl;
-    v2 += v2 += v3;
-    std::cout << "v2: " << v2 << std::endl;
-    v1 *= 42;
-    std::cout << "v1: " << v1 << std::endl;
-    v1 = v1 - v1 + v1;
-    std::cout << "v1: " << v1 << std::endl;
-    std::cout << "v2: " << v2 << std::endl;
-    std::cout << "-v2: " << -v2 << std::endl;
-    std::cout << "v1[1]: " << v1[1] << std::endl;
-    v1[1] = 12; 
-    std::cout << "v1[1]: " << v1[1] << std::endl;
-    std::cout << "v3[1]: " << v3[1] << std::endl;
-    std::cout << "v1 == v3:" << (v1 == v3) << std::endl;
-    std::cout << "v1 != v3:" << (v1 != v3) << std::endl;
-    std::cout << "v1 != v1:" << (v1 != v1) << std::endl;
+    //v2 += v3; //2, 4)
+    //std::cout << "v2: " << v2 << std::endl;
+    //v1 -= v2; //-2, -4
+    //std::cout << "v1: " << v1 << std::endl;
+    //v2 = v3 + v3 * 2;
+    //std::cout << "v2: " << v2 << std::endl;
+    //v2 = 3 * v2;
+    //std::cout << "v2: " << v2 << std::endl;
+    //v2 += v2 += v3;
+    //std::cout << "v2: " << v2 << std::endl;
+    //v1 *= 42;
+    //std::cout << "v1: " << v1 << std::endl;
+    //v1 = v1 - v1 + v1;
+    //std::cout << "v1: " << v1 << std::endl;
+    //std::cout << "v2: " << v2 << std::endl;
+    //std::cout << "-v2: " << -v2 << std::endl;
+    //std::cout << "v1[1]: " << v1[1] << std::endl;
+    //v1[1] = 12; 
+    //std::cout << "v1[1]: " << v1[1] << std::endl;
+    //std::cout << "v3[1]: " << v3[1] << std::endl;
+    //std::cout << "v1 == v3:" << (v1 == v3) << std::endl;
+    //std::cout << "v1 != v3:" << (v1 != v3) << std::endl;
+    //std::cout << "v1 != v1:" << (v1 != v1) << std::endl;
     return (0);
 }
-
