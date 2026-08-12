@@ -12,7 +12,7 @@ class bigint {
 	//inside any member function s is a shorthand of this->. The compiler resolve the name by looking at the enclosign class scope
 public:
 	bigint() : s("0") {}
-	bigint(int n) { if (n < 0) n = 0; do { s.insert(s.begin(), char('0' + n % 10)); n /= 10; } while (n); }
+	bigint(int n) : s() { if (n < 0) n = 0; do { s.insert(s.begin(), char('0' + n % 10)); n /= 10; } while (n); }
 	explicit bigint(const std::string& v)
 		: s(v.find_first_not_of('0') == std::string::npos ? "0" : v.substr(v.find_first_not_of('0'))) {/** secundary constructor */}
 	bigint(const bigint& o) : s(o.s) {}

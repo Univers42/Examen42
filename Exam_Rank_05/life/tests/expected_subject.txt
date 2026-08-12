@@ -1,0 +1,25 @@
+$> echo 'sdxddssaaww' | ./life 5 5 0
+     
+ OOO 
+ O O 
+ OOO 
+     
+$> echo 'sdxssdswdxddddsxaadwxwdxwaa' | ./life 10 6 0
+          
+ O   OOO  
+ O     O  
+ OOO  O   
+  O  OOO  
+          
+$> echo 'dxss' | ./life 3 3 0
+ O 
+ O 
+ O 
+$> echo 'dxss' | ./life 3 3 1
+   
+OOO
+   
+$> echo 'dxss' | ./life 3 3 2
+ O 
+ O 
+ O 

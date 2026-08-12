@@ -1,0 +1,19 @@
+# The subject's own array_bag.cpp allocates with `new int[...]` and frees with
+# plain `delete` in three places (the destructor, insert() and clear()). That
+# is a real defect, but it lives in a provided file: the grader compiles its
+# own copy of array_bag.cpp, and none of the six graded files can reach it.
+#
+# These suppressions are scoped to frames inside array_bag, so the same mistake
+# made anywhere in the graded code is still reported.
+{
+   provided array_bag frees a new[] block with plain delete
+   Memcheck:Free
+   fun:_ZdlPv
+   fun:_ZN9array_bag*
+}
+{
+   provided array_bag frees a new[] block with sized delete
+   Memcheck:Free
+   fun:_ZdlPvm
+   fun:_ZN9array_bag*
+}

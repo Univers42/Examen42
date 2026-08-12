@@ -48,7 +48,7 @@ static int	read_map(FILE *f, t_bsq *b)
 
 	if (hl < 8 || !parse_header(buf, hl, b))
 		return (free(buf), 0);
-	b->row = calloc(b->rows, sizeof(char *));
+	b->row = calloc((size_t)b->rows, sizeof(char *));
 	if (!b->row)
 		return (free(buf), 0);
 	while (i < b->rows)
@@ -59,7 +59,7 @@ static int	read_map(FILE *f, t_bsq *b)
 			break ;
 		buf[--len] = '\0';
 		if (i == 0)
-			b->cols = len;
+			b->cols = (int)len;
 		if (len != b->cols)
 			break ;
 		b->row[i++] = buf;
@@ -78,7 +78,7 @@ static int	read_map(FILE *f, t_bsq *b)
 ** the topmost, then leftmost winner.  Also validates the map characters. */
 static int	solve(t_bsq *b)
 {
-	int	*dp = calloc(b->cols + 1, sizeof(int));
+	int	*dp = calloc((size_t)b->cols + 1, sizeof(int));
 	int	best = 0, br = 0, bc = 0;
 
 	if (!dp)

@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include "life.h"
 
-int	nb(t_board *b, int x, int y)
+/* live neighbours of (x, y); every cell outside the board counts as dead */
+static int	nb(t_board *b, int x, int y)
 {
 	int	c = 0, i, j;
 
@@ -25,7 +26,13 @@ int	main(int ac, char **av)
 	b.w = atoi(av[1]);
 	b.h = atoi(av[2]);
 	k = atoi(av[3]);
-	b.cells = calloc(b.w * b.h, 1);
+	/* a board with no cell has nothing to draw on and nothing to print, and
+	** w * h is counted with an int below, so it must not overflow one */
+	if (b.w < 1 || b.h < 1 || (long)b.w * b.h > 2000000000L)
+		return (1);
+	b.cells = calloc((size_t)(b.w * b.h), 1);
+	if (!b.cells)
+		return (1);
 	while (read(0, &c, 1) > 0)
 	{
 		if (c == 'x')
@@ -37,11 +44,13 @@ int	main(int ac, char **av)
 	}
 	while (k-- > 0)
 	{
-		t.cells = calloc(b.w * b.h, 1);
+		t.cells = calloc((size_t)(b.w * b.h), 1);
+		if (!t.cells)
+			return (free(b.cells), 1);
 		for (i = 0; i < b.w * b.h; i++)
 		{
 			n = nb(&b, i % b.w, i / b.w);
-			t.cells[i] = (n == 3 || (n == 2 && b.cells[i]));
+			t.cells[i] = (char)(n == 3 || (n == 2 && b.cells[i]));
 		}
 		free(b.cells);
 		b.cells = t.cells;
@@ -54,5 +63,3 @@ int	main(int ac, char **av)
 	}
 	return (free(b.cells), 0);
 }
-
-
