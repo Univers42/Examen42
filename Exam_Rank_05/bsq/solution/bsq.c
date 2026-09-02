@@ -93,10 +93,14 @@ static int	solve(t_bsq *b)
 
 			if (b->row[i][j] == b->empty)
 			{
+				{
+					// this part is equalt ot min(left, up, diag)
 				int	v = up < dp[j] ? up : dp[j];
 
 				if (diag < v)
 					v = diag;
+				}
+				// we store the value we've just calculated
 				dp[j + 1] = ++v;
 				if (v > best)
 				{
